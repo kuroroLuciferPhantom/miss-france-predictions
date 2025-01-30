@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 const GoogleButton = ({ onClick }) => (
   <button
@@ -29,53 +31,58 @@ const GoogleButton = ({ onClick }) => (
 );
 
 const SignUpPage = () => {
+  const navigate = useNavigate();
+  const { signup, loginWithGoogle } = useAuthContext();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
-
-  const [errors, setErrors] = useState({});
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (formData.username.length < 3) {
-      newErrors.username = 'Le pseudo doit contenir au moins 3 caractères';
-    }
-    if (formData.username.length > 20) {
-      newErrors.username = 'Le pseudo ne doit pas dépasser 20 caractères';
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Adresse email invalide';
-    }
-
-    if (formData.password.length < 8) {
-      newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères';
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // TODO: Créer le compte avec Firebase
-      console.log('Formulaire valide, création du compte...');
+      setIsLoading(true);
+      try {
+        await signup(formData.email, formData.password, formData.username);
+        navigate('/onboarding');
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   const handleGoogleSignUp = async () => {
-    // TODO: Gérer l'inscription avec Google via Firebase
-    console.log('Inscription avec Google...');
+    setIsLoading(true);
+    try {
+      await loginWithGoogle();
+      navigate('/onboarding');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const validateForm = () => {
+    if (formData.password !== formData.confirmPassword) {
+      setError('Les mots de passe ne correspondent pas');
+      return false;
+    }
+    if (formData.password.length < 8) {
+      setError('Le mot de passe doit contenir au moins 8 caractères');
+      return false;
+    }
+    if (formData.username.length < 3) {
+      setError('Le pseudo doit contenir au moins 3 caractères');
+      return false;
+    }
+    return true;
   };
 
   const handleChange = (e) => {
@@ -83,6 +90,7 @@ const SignUpPage = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+    setError(''); // Clear error when user types
   };
 
   return (
@@ -114,6 +122,12 @@ const SignUpPage = () => {
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+                {error}
+              </div>
+            )}
+
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700">
                 Pseudo
@@ -129,11 +143,6 @@ const SignUpPage = () => {
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500"
                 />
               </div>
-              {errors.username && (
-                <p className="mt-2 text-sm text-red-600">
-                  {errors.username}
-                </p>
-              )}
             </div>
 
             <div>
@@ -151,11 +160,6 @@ const SignUpPage = () => {
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500"
                 />
               </div>
-              {errors.email && (
-                <p className="mt-2 text-sm text-red-600">
-                  {errors.email}
-                </p>
-              )}
             </div>
 
             <div>
@@ -173,11 +177,6 @@ const SignUpPage = () => {
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500"
                 />
               </div>
-              {errors.password && (
-                <p className="mt-2 text-sm text-red-600">
-                  {errors.password}
-                </p>
-              )}
             </div>
 
             <div>
@@ -195,19 +194,17 @@ const SignUpPage = () => {
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500"
                 />
               </div>
-              {errors.confirmPassword && (
-                <p className="mt-2 text-sm text-red-600">
-                  {errors.confirmPassword}
-                </p>
-              )}
             </div>
 
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                disabled={isLoading}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 ${
+                  isLoading ? 'opacity-75 cursor-not-allowed' : ''
+                }`}
               >
-                Créer mon compte
+                {isLoading ? 'Création du compte...' : 'Créer mon compte'}
               </button>
             </div>
           </form>
