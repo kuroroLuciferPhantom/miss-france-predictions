@@ -5,15 +5,15 @@ import { getFirestore } from 'firebase/firestore';
 console.log('Firebase: Initializing...');
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyBTp6-Y7gFPsU8qprZJ5xW0EcZ3-GgOa6w",
+  authDomain: "missfranceprediction.firebaseapp.com",
+  projectId: "missfranceprediction",
+  storageBucket: "missfranceprediction.appspot.com",
+  messagingSenderId: "275177405967",
+  appId: "1:275177405967:web:3e05b6f46dbd01a1ac8cdf"
 };
 
-console.log('Firebase: Config loaded', firebaseConfig.projectId);
+console.log('Firebase: Config loaded');
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
