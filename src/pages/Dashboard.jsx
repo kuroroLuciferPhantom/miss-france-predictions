@@ -13,10 +13,12 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchGroups = async () => {
+      if (!auth.currentUser) return;
+      
       try {
         const userGroupsQuery = query(
           collection(db, 'groups'),
-          where('members', 'array-contains', { uid: auth.currentUser.uid })
+          where('memberIds', 'array-contains', auth.currentUser.uid)
         );
         
         const querySnapshot = await getDocs(userGroupsQuery);
@@ -33,9 +35,7 @@ const Dashboard = () => {
       }
     };
 
-    if (auth.currentUser) {
-      fetchGroups();
-    }
+    fetchGroups();
   }, [auth.currentUser]);
 
   const handleCreateGroup = () => {
@@ -45,6 +45,10 @@ const Dashboard = () => {
   const handleJoinGroup = () => {
     navigate('/join-group');
   };
+
+  if (!auth.currentUser) {
+    return <Navigate to="/login" />;
+  }
 
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">Chargement...</div>;
@@ -89,7 +93,9 @@ const Dashboard = () => {
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                   <span>{group.name}</span>
-                  <span className="text-sm text-gray-500">{group.members.length} membres</span>
+                  <span className="text-sm text-gray-500">
+                    {group.members ? group.members.length : 0} membres
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
