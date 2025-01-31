@@ -1,41 +1,22 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { getAuth } from 'firebase/auth';
-import routes from './routes';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import LoginPage from './pages/auth/LoginPage';
+import JoinGroup from './components/JoinGroup';
+import { auth } from './lib/firebase';
+import PrivateRoute from './components/PrivateRoute';
 
-const RequireAuth = ({ children }) => {
-  const auth = getAuth();
-  const location = useLocation();
-
-  if (!auth.currentUser) {
-    return <Navigate to="/login" state={{ from: location }} />;
-  }
-
-  return children;
-};
-
-const App = () => {
+function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {routes.map((route) => (
-          <Route
-            key={route.path}
-            path={route.path}
-            element={
-              route.protected ? (
-                <RequireAuth>
-                  {route.element}
-                </RequireAuth>
-              ) : (
-                route.element
-              )
-            }
-          />
-        ))}
+        <Route exact path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/join-group" element={<PrivateRoute><JoinGroup /></PrivateRoute>} />
+        <Route path="/login" element={<LoginPage />} />
       </Routes>
     </BrowserRouter>
   );
-};
+}
 
 export default App;
