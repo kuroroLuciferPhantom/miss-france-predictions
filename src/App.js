@@ -7,6 +7,7 @@ import SignUpPage from './pages/auth/SignUpPage';
 import OnboardingPage from './pages/onboarding/OnboardingPage';
 import GroupDetailPage from './pages/groups/GroupDetailPage';
 import CreateGroupPage from './pages/groups/CreateGroupPage';
+import DashboardPage from './pages/DashboardPage';
 
 function App() {
   return (
@@ -15,6 +16,11 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/dashboard" element={
+          <PrivateRoute>
+            <DashboardPage />
+          </PrivateRoute>
+        } />
         <Route path="/onboarding" element={
           <PrivateRoute>
             <OnboardingPage />
