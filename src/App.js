@@ -6,6 +6,7 @@ import LoginPage from './pages/auth/LoginPage';
 import SignUpPage from './pages/auth/SignUpPage';
 import OnboardingPage from './pages/onboarding/OnboardingPage';
 import GroupDetailPage from './pages/groups/GroupDetailPage';
+import CreateGroupPage from './pages/groups/CreateGroupPage';
 
 function App() {
   return (
@@ -17,6 +18,11 @@ function App() {
         <Route path="/onboarding" element={
           <PrivateRoute>
             <OnboardingPage />
+          </PrivateRoute>
+        } />
+        <Route path="/group/create" element={
+          <PrivateRoute>
+            <CreateGroupPage />
           </PrivateRoute>
         } />
         <Route path="/group/:groupId" element={
