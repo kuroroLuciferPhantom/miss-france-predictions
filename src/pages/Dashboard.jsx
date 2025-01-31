@@ -5,51 +5,58 @@ import { auth, db } from '../lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const Dashboard = () => {
+  console.log('Dashboard mounting...');
   const [userGroups, setUserGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        try {
-          const userGroupsQuery = query(
-            collection(db, 'groups'),
-            where('memberIds', 'array-contains', user.uid)
-          );
-          
-          const querySnapshot = await getDocs(userGroupsQuery);
-          const groups = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          
-          setUserGroups(groups);
-        } catch (error) {
-          console.error('Erreur lors de la récupération des groupes:', error);
-        }
-      } else {
+    console.log('Dashboard useEffect running');
+    console.log('Current user:', auth.currentUser);
+    
+    const fetchGroups = async () => {
+      if (!auth.currentUser) {
+        console.log('No user found, redirecting to login');
         navigate('/login');
+        return;
       }
-      setLoading(false);
-    });
 
-    return () => unsubscribe();
+      try {
+        console.log('Fetching groups for user:', auth.currentUser.uid);
+        const userGroupsQuery = query(
+          collection(db, 'groups'),
+          where('memberIds', 'array-contains', auth.currentUser.uid)
+        );
+        
+        const querySnapshot = await getDocs(userGroupsQuery);
+        console.log('Groups fetched:', querySnapshot.size);
+        const groups = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        console.log('Processed groups:', groups);
+        
+        setUserGroups(groups);
+      } catch (error) {
+        console.error('Error fetching groups:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGroups();
+    console.log('fetchGroups called');
   }, [navigate]);
 
-  const handleCreateGroup = () => {
-    navigate('/create-group');
-  };
-
-  const handleJoinGroup = () => {
-    navigate('/join-group');
-  };
+  console.log('Dashboard rendering with state:', { userGroups, loading });
 
   if (!auth.currentUser) {
+    console.log('No user in render, returning null');
     return null;
   }
 
   if (loading) {
+    console.log('Still loading, showing loading state');
     return <div className="flex justify-center items-center min-h-screen">Chargement...</div>;
   }
 
@@ -62,13 +69,13 @@ const Dashboard = () => {
         
         <div className="space-x-4">
           <button
-            onClick={handleCreateGroup}
+            onClick={() => navigate('/create-group')}
             className="bg-pink-500 text-white px-6 py-2 rounded-md hover:bg-pink-600"
           >
             Créer un groupe
           </button>
           <button
-            onClick={handleJoinGroup}
+            onClick={() => navigate('/join-group')}
             className="bg-white text-gray-800 px-6 py-2 rounded-md border border-gray-300 hover:bg-gray-50"
           >
             Rejoindre un groupe
