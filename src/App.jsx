@@ -1,19 +1,31 @@
-import React from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './lib/firebase';
 import Dashboard from './pages/Dashboard';
 import LoginPage from './pages/auth/LoginPage';
 import JoinGroup from './components/JoinGroup';
-import { auth } from './lib/firebase';
-import PrivateRoute from './components/PrivateRoute';
 
 function App() {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log('Auth state changed:', user);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route exact path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-        <Route path="/join-group" element={<PrivateRoute><JoinGroup /></PrivateRoute>} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={
+          auth.currentUser ? <Dashboard /> : <Navigate to="/login" replace />
+        } />
+        <Route path="/join-group" element={
+          auth.currentUser ? <JoinGroup /> : <Navigate to="/login" replace />
+        } />
       </Routes>
     </BrowserRouter>
   );
