@@ -7,7 +7,7 @@ import SignUpPage from './pages/auth/SignUpPage';
 import OnboardingPage from './pages/onboarding/OnboardingPage';
 import GroupDetailPage from './pages/groups/GroupDetailPage';
 import CreateGroupPage from './pages/groups/CreateGroupPage';
-import DashboardPage from './pages/DashboardPage';
+import DashboardPage from './pages/dashboard/DashboardPage';
 
 function App() {
   return (
