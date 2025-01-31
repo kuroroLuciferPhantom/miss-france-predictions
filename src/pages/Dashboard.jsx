@@ -1,42 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { auth, db } from '../lib/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const Dashboard = () => {
   const [userGroups, setUserGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const auth = getAuth();
-  const db = getFirestore();
 
   useEffect(() => {
-    const fetchGroups = async () => {
-      if (!auth.currentUser) return;
-      
-      try {
-        const userGroupsQuery = query(
-          collection(db, 'groups'),
-          where('memberIds', 'array-contains', auth.currentUser.uid)
-        );
-        
-        const querySnapshot = await getDocs(userGroupsQuery);
-        const groups = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        
-        setUserGroups(groups);
-      } catch (error) {
-        console.error('Erreur lors de la récupération des groupes:', error);
-      } finally {
-        setLoading(false);
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        try {
+          const userGroupsQuery = query(
+            collection(db, 'groups'),
+            where('memberIds', 'array-contains', user.uid)
+          );
+          
+          const querySnapshot = await getDocs(userGroupsQuery);
+          const groups = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          
+          setUserGroups(groups);
+        } catch (error) {
+          console.error('Erreur lors de la récupération des groupes:', error);
+        }
+      } else {
+        navigate('/login');
       }
-    };
+      setLoading(false);
+    });
 
-    fetchGroups();
-  }, [auth.currentUser]);
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleCreateGroup = () => {
     navigate('/create-group');
@@ -47,7 +46,7 @@ const Dashboard = () => {
   };
 
   if (!auth.currentUser) {
-    return <Navigate to="/login" />;
+    return null;
   }
 
   if (loading) {
