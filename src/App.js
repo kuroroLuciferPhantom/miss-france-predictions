@@ -7,6 +7,7 @@ import SignUpPage from './pages/auth/SignUpPage';
 import OnboardingPage from './pages/onboarding/OnboardingPage';
 import GroupDetailPage from './pages/groups/GroupDetailPage';
 import CreateGroupPage from './pages/groups/CreateGroupPage';
+import JoinGroupPage from './pages/groups/JoinGroupPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 
 function App() {
@@ -29,6 +30,11 @@ function App() {
         <Route path="/group/create" element={
           <PrivateRoute>
             <CreateGroupPage />
+          </PrivateRoute>
+        } />
+        <Route path="/group/join" element={
+          <PrivateRoute>
+            <JoinGroupPage />
           </PrivateRoute>
         } />
         <Route path="/group/:groupId" element={
