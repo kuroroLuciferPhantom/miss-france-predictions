@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getAuth, signInWithEmailAndPassword, signInWithPopup, createUserWithEmailAndPassword, GoogleAuthProvider } from 'firebase/auth';
 
 const GoogleButton = ({ onClick }) => (
   <button
@@ -29,6 +31,8 @@ const GoogleButton = ({ onClick }) => (
 );
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+  const auth = getAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -36,22 +40,43 @@ const LoginPage = () => {
   });
 
   const [error, setError] = useState('');
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     
     try {
-      // TODO: Implémenter la connexion avec Firebase
-      console.log('Tentative de connexion...', formData);
+      if (isCreatingAccount) {
+        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+        await userCredential.user.updateProfile({
+          displayName: formData.email.split('@')[0]
+        });
+      } else {
+        await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      }
+      navigate('/dashboard');
     } catch (err) {
-      setError('Email ou mot de passe incorrect');
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        setError('Email ou mot de passe incorrect');
+      } else if (err.code === 'auth/email-already-in-use') {
+        setError('Cet email est déjà utilisé');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Le mot de passe doit faire au moins 6 caractères');
+      } else {
+        setError('Une erreur est survenue');
+      }
     }
   };
 
   const handleGoogleSignIn = async () => {
-    // TODO: Gérer la connexion avec Google via Firebase
-    console.log('Connexion avec Google...');
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Erreur lors de la connexion avec Google');
+    }
   };
 
   const handleChange = (e) => {
@@ -66,10 +91,10 @@ const LoginPage = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-          Connectez-vous
+          {isCreatingAccount ? 'Créer un compte' : 'Connectez-vous'}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Retrouvez vos groupes et vos pronostics
+          {isCreatingAccount ? 'Rejoignez vos amis pour pronostiquer' : 'Retrouvez vos groupes et vos pronostics'}
         </p>
       </div>
 
@@ -146,11 +171,13 @@ const LoginPage = () => {
                 </label>
               </div>
 
-              <div className="text-sm">
-                <a href="#" className="font-medium text-pink-600 hover:text-pink-500">
-                  Mot de passe oublié ?
-                </a>
-              </div>
+              {!isCreatingAccount && (
+                <div className="text-sm">
+                  <a href="#" className="font-medium text-pink-600 hover:text-pink-500">
+                    Mot de passe oublié ?
+                  </a>
+                </div>
+              )}
             </div>
 
             <div>
@@ -158,7 +185,7 @@ const LoginPage = () => {
                 type="submit"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
               >
-                Se connecter
+                {isCreatingAccount ? 'Créer un compte' : 'Se connecter'}
               </button>
             </div>
           </form>
@@ -170,7 +197,7 @@ const LoginPage = () => {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white text-gray-500">
-                  Pas encore de compte ?
+                  {isCreatingAccount ? 'Déjà un compte ?' : 'Pas encore de compte ?'}
                 </span>
               </div>
             </div>
@@ -178,9 +205,10 @@ const LoginPage = () => {
             <div className="mt-6">
               <button
                 type="button"
+                onClick={() => setIsCreatingAccount(!isCreatingAccount)}
                 className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
-                Créer un compte
+                {isCreatingAccount ? 'Se connecter' : 'Créer un compte'}
               </button>
             </div>
           </div>
