@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, signInWithEmailAndPassword, signInWithPopup, createUserWithEmailAndPassword, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, signInWithPopup, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider } from 'firebase/auth';
 
 const GoogleButton = ({ onClick }) => (
   <button
@@ -48,15 +48,17 @@ const LoginPage = () => {
     
     try {
       if (isCreatingAccount) {
-        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        await userCredential.user.updateProfile({
+        const { user } = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+        await updateProfile(user, {
           displayName: formData.email.split('@')[0]
         });
+        navigate('/dashboard', { replace: true });
       } else {
         await signInWithEmailAndPassword(auth, formData.email, formData.password);
+        navigate('/dashboard', { replace: true });
       }
-      navigate('/dashboard');
     } catch (err) {
+      console.error('Erreur:', err);
       if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
         setError('Email ou mot de passe incorrect');
       } else if (err.code === 'auth/email-already-in-use') {
@@ -64,7 +66,7 @@ const LoginPage = () => {
       } else if (err.code === 'auth/weak-password') {
         setError('Le mot de passe doit faire au moins 6 caractères');
       } else {
-        setError('Une erreur est survenue');
+        setError(`${err.message}`);
       }
     }
   };
@@ -73,8 +75,9 @@ const LoginPage = () => {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } catch (err) {
+      console.error('Erreur Google:', err);
       setError('Erreur lors de la connexion avec Google');
     }
   };
