@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../../lib/firebase';
+import { useAuthContext } from '../../contexts/AuthContext';
+import { db } from '../../config/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const DashboardPage = () => {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuthContext();
 
   useEffect(() => {
     const fetchGroups = async () => {
       try {
         const groupsQuery = query(
           collection(db, 'groups'),
-          where('memberIds', 'array-contains', auth.currentUser.uid)
+          where('memberIds', 'array-contains', user.uid)
         );
         
         const querySnapshot = await getDocs(groupsQuery);
@@ -30,8 +32,10 @@ const DashboardPage = () => {
       }
     };
 
-    fetchGroups();
-  }, []);
+    if (user) {
+      fetchGroups();
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -45,7 +49,7 @@ const DashboardPage = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <h1 className="text-3xl font-bold mb-4 md:mb-0">
-          Bienvenue {auth.currentUser?.displayName || 'Utilisateur'}
+          Bienvenue {user?.username || 'Utilisateur'}
         </h1>
         
         <div className="space-x-4">
