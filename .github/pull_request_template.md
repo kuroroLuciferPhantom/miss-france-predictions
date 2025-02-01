@@ -20,6 +20,7 @@
 - Firebase : config unique dans /config
 - Style : utiliser les dégradés rose/violet définis
 - Auth : gérer via AuthContext
+- Code existant : toujours vérifier que le code existant n'est pas modifié/supprimé accidentellement lors de l'ajout de nouvelles fonctionnalités
 
 ## Checklist
 - [ ] Les changements sont testés
@@ -27,5 +28,6 @@
 - [ ] Les routes sont correctement configurées
 - [ ] Le style suit les guidelines
 - [ ] Pas de données sensibles exposées
+- [ ] Le code existant n'a pas été supprimé accidentellement
 
 ## Screenshots (si applicable)
