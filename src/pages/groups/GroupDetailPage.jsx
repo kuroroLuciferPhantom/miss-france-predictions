@@ -155,7 +155,7 @@ const GroupDetailPage = () => {
   const [currentTab, setCurrentTab] = useState('stats'); // Ajout du nouvel état
   const { user } = useAuthContext(); // Ajout de l'import AuthContext
   const [predictions, setPredictions] = useState([]);
-  const isAdmin = true; // À gérer avec les droits utilisateur
+  const [isAdmin, setIsAdmin] = useState(false); // Initialiser à false par défaut
   const [userHasPredicted, setUserHasPredicted] = useState(false);
 
   useEffect(() => {
