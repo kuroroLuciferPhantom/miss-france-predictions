@@ -164,13 +164,6 @@ const DashboardPage = () => {
           />
         </div>
 
-        <div className="flex justify-between text-sm text-gray-500 mb-4">
-          <span>Pronostics</span>
-          <span>
-            {`${group.completedPredictions}/${group.members.length} complétés`}
-          </span>
-        </div>
-
         {/* Search & Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
@@ -250,7 +243,9 @@ const DashboardPage = () => {
                   <div className="border-t pt-4">
                     <div className="flex justify-between text-sm text-gray-500 mb-4">
                       <span>Pronostics</span>
-                      <span>0/15 complétés</span>
+                      <span>
+                        {`${group.completedPredictions}/${group.members.length} complétés`}
+                      </span>
                     </div>
                   </div>
                   
