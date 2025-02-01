@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import LeaderboardTable from '../../components/groups/LeaderboardTable';
+import PredictionsList from '../../components/groups/PredictionsList';
 
 // Composants existants...
 // ShareInviteCode, Chat, MembersList, GroupSettings...
@@ -10,9 +11,10 @@ const GroupDetailPage = () => {
   const { groupId } = useParams();
   const [group, setGroup] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [eventStarted, setEventStarted] = useState(false);
+  const [predictions, setPredictions] = useState([]);
   const isAdmin = true; // À gérer avec les droits utilisateur
   const [userHasPredicted, setUserHasPredicted] = useState(false);
-  const [eventStarted, setEventStarted] = useState(false);
 
   useEffect(() => {
     // Simuler le chargement des données du groupe
@@ -61,6 +63,65 @@ const GroupDetailPage = () => {
 
     // TODO: Récupérer l'état de l'événement depuis Firebase
     setEventStarted(false);
+
+    // Simuler les données de pronostics
+    setPredictions([
+      {
+        userId: '1',
+        username: 'Alice',
+        isPublic: true,
+        top5: [
+          { id: '1', name: 'Miss Alsace' },
+          { id: '2', name: 'Miss Île-de-France' },
+          { id: '3', name: 'Miss Provence' },
+          { id: '4', name: 'Miss Normandie' },
+          { id: '5', name: 'Miss Aquitaine' }
+        ],
+        qualifiees: [
+          { id: '6', name: 'Miss Bretagne' },
+          { id: '7', name: 'Miss Réunion' },
+          { id: '8', name: 'Miss Nord-Pas-de-Calais' },
+          { id: '9', name: 'Miss Lorraine' },
+          { id: '10', name: 'Miss Corse' },
+          { id: '11', name: 'Miss Languedoc' },
+          { id: '12', name: 'Miss Rhône-Alpes' },
+          { id: '13', name: 'Miss Pays de Loire' },
+          { id: '14', name: 'Miss Picardie' },
+          { id: '15', name: 'Miss Midi-Pyrénées' }
+        ]
+      },
+      {
+        userId: '2',
+        username: 'Bob',
+        isPublic: false,
+        top5: [],
+        qualifiees: []
+      },
+      {
+        userId: '3',
+        username: 'Charlie',
+        isPublic: true,
+        top5: [
+          { id: '2', name: 'Miss Île-de-France' },
+          { id: '1', name: 'Miss Alsace' },
+          { id: '5', name: 'Miss Aquitaine' },
+          { id: '3', name: 'Miss Provence' },
+          { id: '7', name: 'Miss Réunion' }
+        ],
+        qualifiees: [
+          { id: '4', name: 'Miss Normandie' },
+          { id: '6', name: 'Miss Bretagne' },
+          { id: '8', name: 'Miss Nord-Pas-de-Calais' },
+          { id: '9', name: 'Miss Lorraine' },
+          { id: '10', name: 'Miss Corse' },
+          { id: '11', name: 'Miss Languedoc' },
+          { id: '12', name: 'Miss Rhône-Alpes' },
+          { id: '13', name: 'Miss Pays de Loire' },
+          { id: '14', name: 'Miss Picardie' },
+          { id: '15', name: 'Miss Midi-Pyrénées' }
+        ]
+      }
+    ]);
   }, [groupId]);
 
   const handleSendMessage = (text) => {
@@ -129,6 +190,12 @@ const GroupDetailPage = () => {
             {/* Tableau de classement */}
             <LeaderboardTable 
               members={group.members}
+              eventStarted={eventStarted}
+            />
+
+            {/* Liste des pronostics */}
+            <PredictionsList 
+              predictions={predictions}
               eventStarted={eventStarted}
             />
 
