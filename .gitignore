@@ -38,3 +38,6 @@ firebase-debug.*.log*
 *.log
 *.pid
 *.seed
+
+#Img
+/src/assets/images/miss/*

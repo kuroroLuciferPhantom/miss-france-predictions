@@ -346,12 +346,11 @@ const GroupDetailPage = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Bouton de pronostic */}
             <div className="flex justify-end">
-              <button
-                onClick={() => console.log('Ouvrir le formulaire de pronostics')}
-                disabled={eventStarted}
-                className={`px-6 py-3 font-semibold rounded-lg shadow-sm transition-colors
+              <Link
+                to={`/group/${groupId}/prediction`}
+                className={`px-6 py-3 font-semibold rounded-lg shadow-sm transition-colors inline-block
                   ${eventStarted 
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none'
                     : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600'
                   }`}
               >
@@ -361,7 +360,7 @@ const GroupDetailPage = () => {
                     ? 'Modifier mon pronostic' 
                     : 'Faire mon pronostic'
                 }
-              </button>
+              </Link>
             </div>
 
             {/* Navigation par onglets */}

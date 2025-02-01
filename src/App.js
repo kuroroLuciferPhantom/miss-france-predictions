@@ -9,6 +9,8 @@ import GroupDetailPage from './pages/groups/GroupDetailPage';
 import CreateGroupPage from './pages/groups/CreateGroupPage';
 import JoinGroupPage from './pages/groups/JoinGroupPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
+import RankingPage from './pages/RankingPage';
+
 
 function App() {
   return (
@@ -40,6 +42,11 @@ function App() {
         <Route path="/group/:groupId" element={
           <PrivateRoute>
             <GroupDetailPage />
+          </PrivateRoute>
+        } />
+        <Route path="/group/:groupId/prediction" element={
+          <PrivateRoute>
+            <RankingPage />
           </PrivateRoute>
         } />
       </Routes>
