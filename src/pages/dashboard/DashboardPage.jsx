@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { db } from '../../config/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 
 const StatCard = ({ title, value }) => (
   <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition-shadow">
@@ -28,25 +28,62 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
+        // 1. Récupérer les groupes où l'utilisateur est membre
         const groupsQuery = query(
           collection(db, 'groups'),
           where('memberIds', 'array-contains', user.uid)
         );
         
         const querySnapshot = await getDocs(groupsQuery);
-        const groupsData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
+        
+        // 2. Pour chaque groupe, récupérer les données détaillées des membres
+        const groupsWithDetails = await Promise.all(querySnapshot.docs.map(async (docSnapshot) => {
+          const groupData = docSnapshot.data();
+          
+          // Récupérer les détails de chaque membre
+          const memberPromises = groupData.memberIds.map(async (memberId) => {
+            const memberDoc = await getDoc(doc(db, 'users', memberId));
+            if (memberDoc.exists()) {
+              return {
+                id: memberId,
+                ...memberDoc.data(),
+                isAdmin: memberId === groupData.ownerId
+              };
+            }
+            return null;
+          });
+  
+          const members = (await Promise.all(memberPromises)).filter(member => member !== null);
+  
+          // 3. Récupérer les pronostics du groupe
+          const predictionsQuery = query(
+            collection(db, 'predictions'),
+            where('groupId', '==', docSnapshot.id)
+          );
+          const predictionsSnapshot = await getDocs(predictionsQuery);
+          const predictions = predictionsSnapshot.docs.map(predDoc => ({
+            id: predDoc.id,
+            ...predDoc.data()
+          }));
+  
+          return {
+            id: docSnapshot.id,
+            ...groupData,
+            members,
+            predictions,
+            completedPredictions: predictions.length,
+            userHasPredicted: predictions.some(pred => pred.userId === user.uid)
+          };
         }));
         
-        setGroups(groupsData);
+        setGroups(groupsWithDetails);
       } catch (error) {
         console.error('Error fetching groups:', error);
       } finally {
         setLoading(false);
       }
     };
-
+  
     if (user) {
       fetchGroups();
     }
@@ -110,9 +147,28 @@ const DashboardPage = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <StatCard title="Vos groupes" value={groups.length} />
-          <StatCard title="Pronostics réalisés" value="0/15" />
-          <StatCard title="Meilleur score" value="-" />
+          <StatCard 
+            title="Vos groupes" 
+            value={groups.length} 
+          />
+          <StatCard 
+            title="Pronostics réalisés" 
+            value={`${groups.filter(g => g.userHasPredicted).length}/${groups.length}`} 
+          />
+          <StatCard 
+            title="Meilleur score" 
+            value={groups.reduce((max, group) => {
+              const userScore = group.predictions?.find(p => p.userId === user.uid)?.score || 0;
+              return Math.max(max, userScore);
+            }, 0)} 
+          />
+        </div>
+
+        <div className="flex justify-between text-sm text-gray-500 mb-4">
+          <span>Pronostics</span>
+          <span>
+            {`${group.completedPredictions}/${group.members.length} complétés`}
+          </span>
         </div>
 
         {/* Search & Filters */}
