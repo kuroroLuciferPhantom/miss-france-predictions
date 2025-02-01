@@ -16,6 +16,7 @@ const CreateGroupPage = () => {
   const [error, setError] = useState('');
   const [groupData, setGroupData] = useState({
     name: '',
+    description: ''
   });
 
   const handleSubmit = async (e) => {
@@ -31,6 +32,7 @@ const CreateGroupPage = () => {
       const groupRef = doc(db, 'groups', inviteCode);
       await setDoc(groupRef, {
         name: groupData.name,
+        description: groupData.description,
         inviteCode,
         admin: user.uid,
         createdAt: new Date().toISOString(),
@@ -108,6 +110,26 @@ const CreateGroupPage = () => {
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                  Description du groupe
+                </label>
+                <div className="mt-1">
+                  <textarea
+                    id="description"
+                    name="description"
+                    rows="3"
+                    value={groupData.description}
+                    onChange={(e) => setGroupData({ ...groupData, description: e.target.value })}
+                    placeholder="Décrivez votre groupe en quelques mots..."
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500"
+                  />
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  Une brève description pour présenter votre groupe aux autres participants
+                </p>
               </div>
 
               {/* Informations supplémentaires */}

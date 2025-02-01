@@ -28,55 +28,32 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        // 1. Récupérer les groupes où l'utilisateur est membre
+        console.log('Fetching groups for user:', user.uid);
+        
+        // Modifié pour correspondre à la structure réelle
         const groupsQuery = query(
           collection(db, 'groups'),
-          where('memberIds', 'array-contains', user.uid)
+          where('members', 'array-contains', {
+            userId: user.uid
+          })
         );
         
-        const querySnapshot = await getDocs(groupsQuery);
-        
-        // 2. Pour chaque groupe, récupérer les données détaillées des membres
-        const groupsWithDetails = await Promise.all(querySnapshot.docs.map(async (docSnapshot) => {
-          const groupData = docSnapshot.data();
-          
-          // Récupérer les détails de chaque membre
-          const memberPromises = groupData.memberIds.map(async (memberId) => {
-            const memberDoc = await getDoc(doc(db, 'users', memberId));
-            if (memberDoc.exists()) {
-              return {
-                id: memberId,
-                ...memberDoc.data(),
-                isAdmin: memberId === groupData.ownerId
-              };
-            }
-            return null;
+        // On pourrait aussi faire une requête sur tous les groupes et filtrer
+        const querySnapshot = await getDocs(collection(db, 'groups'));
+        const userGroups = querySnapshot.docs
+          .filter(doc => doc.data().members.some(member => member.userId === user.uid))
+          .map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              members: data.members,
+              completedPredictions: 0, // À implémenter avec predictions
+              userHasPredicted: false // À implémenter avec predictions
+            };
           });
-  
-          const members = (await Promise.all(memberPromises)).filter(member => member !== null);
-  
-          // 3. Récupérer les pronostics du groupe
-          const predictionsQuery = query(
-            collection(db, 'predictions'),
-            where('groupId', '==', docSnapshot.id)
-          );
-          const predictionsSnapshot = await getDocs(predictionsQuery);
-          const predictions = predictionsSnapshot.docs.map(predDoc => ({
-            id: predDoc.id,
-            ...predDoc.data()
-          }));
-  
-          return {
-            id: docSnapshot.id,
-            ...groupData,
-            members,
-            predictions,
-            completedPredictions: predictions.length,
-            userHasPredicted: predictions.some(pred => pred.userId === user.uid)
-          };
-        }));
         
-        setGroups(groupsWithDetails);
+        setGroups(userGroups);
       } catch (error) {
         console.error('Error fetching groups:', error);
       } finally {
@@ -99,9 +76,11 @@ const DashboardPage = () => {
     .filter(group => {
       switch (filter) {
         case 'owned':
-          return group.ownerId === user.uid;
+          // Modification ici : vérifier admin au lieu de ownerId
+          return group.admin === user.uid;
         case 'member':
-          return group.ownerId !== user.uid;
+          // Et ici : vérifier que l'utilisateur n'est pas admin
+          return group.admin !== user.uid;
         default:
           return true;
       }

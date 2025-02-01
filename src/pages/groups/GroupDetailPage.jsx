@@ -4,6 +4,9 @@ import { ArrowLeft } from 'lucide-react';
 import LeaderboardTable from '../../components/groups/LeaderboardTable';
 import PredictionsList from '../../components/groups/PredictionsList';
 import GroupStats from '../../components/groups/GroupStats';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../config/firebase';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 const ShareInviteCode = ({ code }) => {
   const [copied, setCopied] = useState(false);
@@ -147,45 +150,36 @@ const GroupDetailPage = () => {
   const [group, setGroup] = useState(null);
   const [messages, setMessages] = useState([]);
   const [eventStarted, setEventStarted] = useState(false);
+  const [currentTab, setCurrentTab] = useState('stats'); // Ajout du nouvel état
+  const { user } = useAuthContext(); // Ajout de l'import AuthContext
   const [predictions, setPredictions] = useState([]);
   const isAdmin = true; // À gérer avec les droits utilisateur
   const [userHasPredicted, setUserHasPredicted] = useState(false);
 
   useEffect(() => {
-    // Simuler le chargement des données du groupe
-    setGroup({
-      name: "Les experts Miss France",
-      inviteCode: "MISSFR2025",
-      members: [
-        { 
-          id: '1', 
-          username: "Alice", 
-          isAdmin: true, 
-          isOnline: true, 
-          hasSubmitted: true,
-          points: 150,
-          trend: 'up'
-        },
-        { 
-          id: '2', 
-          username: "Bob", 
-          isAdmin: false, 
-          isOnline: false, 
-          hasSubmitted: false,
-          points: 120,
-          trend: 'down'
-        },
-        { 
-          id: '3', 
-          username: "Charlie", 
-          isAdmin: false, 
-          isOnline: true, 
-          hasSubmitted: true,
-          points: 135,
-          trend: null
+    const fetchGroupData = async () => {
+      try {
+        const groupRef = doc(db, 'groups', groupId);
+        const groupSnapshot = await getDoc(groupRef);
+        
+        if (groupSnapshot.exists()) {
+          const groupData = groupSnapshot.data();
+          setGroup({
+            id: groupSnapshot.id,
+            ...groupData,
+          });
+  
+          // Vérifier si l'utilisateur est admin
+          setIsAdmin(groupData.admin === user.uid);
         }
-      ]
-    });
+      } catch (error) {
+        console.error('Erreur lors du chargement du groupe:', error);
+      }
+    };
+  
+    if (groupId) {
+      fetchGroupData();
+    }
 
     setMessages([
       {
@@ -257,7 +251,7 @@ const GroupDetailPage = () => {
         ]
       }
     ]);
-  }, [groupId]);
+  }, [groupId, user]);
 
   const handleSendMessage = (text) => {
     const newMessage = {
@@ -272,6 +266,40 @@ const GroupDetailPage = () => {
   if (!group) {
     return <div>Chargement...</div>;
   }
+
+  const renderContent = () => {
+    switch(currentTab) {
+      case 'stats':
+        return (
+          <>
+            <GroupStats 
+              predictions={predictions}
+              members={group.members}
+            />
+            <LeaderboardTable 
+              members={group.members}
+              eventStarted={eventStarted}
+            />
+          </>
+        );
+      case 'predictions':
+        return (
+          <PredictionsList 
+            predictions={predictions}
+            eventStarted={eventStarted}
+          />
+        );
+      case 'chat':
+        return (
+          <Chat 
+            messages={messages} 
+            onSendMessage={handleSendMessage}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -302,7 +330,7 @@ const GroupDetailPage = () => {
 
           {/* Colonne droite - Pronostics, Classement et Chat */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Section Pronostics avec le bouton */}
+            {/* Bouton de pronostic */}
             <div className="flex justify-end">
               <button
                 onClick={() => console.log('Ouvrir le formulaire de pronostics')}
@@ -322,26 +350,30 @@ const GroupDetailPage = () => {
               </button>
             </div>
 
-            {/* Statistiques du groupe */}
-            <GroupStats 
-              predictions={predictions}
-              members={group.members}
-            />
-
-            {/* Tableau de classement */}
-            <LeaderboardTable 
-              members={group.members}
-              eventStarted={eventStarted}
-            />
-
-            {/* Liste des pronostics */}
-            <PredictionsList 
-              predictions={predictions}
-              eventStarted={eventStarted}
-            />
-
-            {/* Chat existant */}
-            <Chat messages={messages} onSendMessage={handleSendMessage} />
+            {/* Navigation par onglets */}
+            <div className="bg-white rounded-lg shadow">
+              <div className="border-b border-gray-200">
+                <nav className="flex -mb-px">
+                  {['stats', 'predictions', 'chat'].map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setCurrentTab(tab)}
+                      className={`py-4 px-6 font-medium text-sm border-b-2 ${
+                        currentTab === tab
+                          ? 'border-pink-500 text-pink-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+              
+              <div className="p-6">
+                {renderContent()}
+              </div>
+            </div>
           </div>
         </div>
       </div>
