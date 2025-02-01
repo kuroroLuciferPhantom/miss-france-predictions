@@ -156,16 +156,107 @@ const GroupDetailPage = () => {
     setGroup({
       name: "Les experts Miss France",
       inviteCode: "MISSFR2025",
-      members: [...]
+      members: [
+        { 
+          id: '1', 
+          username: "Alice", 
+          isAdmin: true, 
+          isOnline: true, 
+          hasSubmitted: true,
+          points: 150,
+          trend: 'up'
+        },
+        { 
+          id: '2', 
+          username: "Bob", 
+          isAdmin: false, 
+          isOnline: false, 
+          hasSubmitted: false,
+          points: 120,
+          trend: 'down'
+        },
+        { 
+          id: '3', 
+          username: "Charlie", 
+          isAdmin: false, 
+          isOnline: true, 
+          hasSubmitted: true,
+          points: 135,
+          trend: null
+        }
+      ]
     });
 
-    setMessages([...]);
+    setMessages([
+      {
+        id: '1',
+        username: "Alice",
+        text: "Qui a déjà fait ses pronostics ?",
+        timestamp: new Date().toISOString()
+      }
+    ]);
 
     // TODO: Récupérer l'état de l'événement depuis Firebase
     setEventStarted(false);
 
     // Simuler les données de pronostics
-    setPredictions([...]);
+    setPredictions([
+      {
+        userId: '1',
+        username: 'Alice',
+        isPublic: true,
+        top5: [
+          { id: '1', name: 'Miss Alsace' },
+          { id: '2', name: 'Miss Île-de-France' },
+          { id: '3', name: 'Miss Provence' },
+          { id: '4', name: 'Miss Normandie' },
+          { id: '5', name: 'Miss Aquitaine' }
+        ],
+        qualifiees: [
+          { id: '6', name: 'Miss Bretagne' },
+          { id: '7', name: 'Miss Réunion' },
+          { id: '8', name: 'Miss Nord-Pas-de-Calais' },
+          { id: '9', name: 'Miss Lorraine' },
+          { id: '10', name: 'Miss Corse' },
+          { id: '11', name: 'Miss Languedoc' },
+          { id: '12', name: 'Miss Rhône-Alpes' },
+          { id: '13', name: 'Miss Pays de Loire' },
+          { id: '14', name: 'Miss Picardie' },
+          { id: '15', name: 'Miss Midi-Pyrénées' }
+        ]
+      },
+      {
+        userId: '2',
+        username: 'Bob',
+        isPublic: false,
+        top5: [],
+        qualifiees: []
+      },
+      {
+        userId: '3',
+        username: 'Charlie',
+        isPublic: true,
+        top5: [
+          { id: '2', name: 'Miss Île-de-France' },
+          { id: '1', name: 'Miss Alsace' },
+          { id: '5', name: 'Miss Aquitaine' },
+          { id: '3', name: 'Miss Provence' },
+          { id: '7', name: 'Miss Réunion' }
+        ],
+        qualifiees: [
+          { id: '4', name: 'Miss Normandie' },
+          { id: '6', name: 'Miss Bretagne' },
+          { id: '8', name: 'Miss Nord-Pas-de-Calais' },
+          { id: '9', name: 'Miss Lorraine' },
+          { id: '10', name: 'Miss Corse' },
+          { id: '11', name: 'Miss Languedoc' },
+          { id: '12', name: 'Miss Rhône-Alpes' },
+          { id: '13', name: 'Miss Pays de Loire' },
+          { id: '14', name: 'Miss Picardie' },
+          { id: '15', name: 'Miss Midi-Pyrénées' }
+        ]
+      }
+    ]);
   }, [groupId]);
 
   const handleSendMessage = (text) => {
