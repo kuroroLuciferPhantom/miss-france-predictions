@@ -7,6 +7,8 @@ import GroupStats from '../../components/groups/GroupStats';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { collection, query, orderBy, addDoc, onSnapshot } from 'firebase/firestore';
+
 
 const ShareInviteCode = ({ code }) => {
   const [copied, setCopied] = useState(false);
@@ -177,20 +179,27 @@ const GroupDetailPage = () => {
       }
     };
   
+    // Écoute des messages en temps réel
+    const messagesRef = collection(db, 'groups', groupId, 'chat');  // 'chat' au lieu de 'messages'
+    const messagesQuery = query(messagesRef, orderBy('timestamp', 'asc'));
+
+  
+    const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+      const newMessages = [];
+      snapshot.forEach((doc) => {
+        newMessages.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      setMessages(newMessages);
+    });
+  
     if (groupId) {
       fetchGroupData();
     }
-
-    setMessages([
-      {
-        id: '1',
-        username: "Alice",
-        text: "Qui a déjà fait ses pronostics ?",
-        timestamp: new Date().toISOString()
-      }
-    ]);
-
-    // TODO: Récupérer l'état de l'événement depuis Firebase
+  
+    // Garder temporairement les données de test pour les prédictions
     setEventStarted(false);
 
     // Simuler les données de pronostics
@@ -251,16 +260,21 @@ const GroupDetailPage = () => {
         ]
       }
     ]);
+    return () => unsubscribe();
   }, [groupId, user]);
 
-  const handleSendMessage = (text) => {
-    const newMessage = {
-      id: Date.now().toString(),
-      username: "Vous",
-      text,
-      timestamp: new Date().toISOString()
-    };
-    setMessages([...messages, newMessage]);
+  const handleSendMessage = async (text) => {
+    try {
+      const messagesRef = collection(db, 'groups', groupId, 'chat');  // 'chat' au lieu de 'messages'
+      await addDoc(messagesRef, {
+        userId: user.uid,
+        username: user.username || user.email.split('@')[0],
+        text,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi du message:', error);
+    }
   };
 
   if (!group) {
