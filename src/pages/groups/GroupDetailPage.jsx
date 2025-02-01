@@ -1,5 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import PredictionForm from '@/components/predictions/PredictionForm';
+import PredictionDetails from '@/components/predictions/PredictionDetails';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
+import { 
+  savePrediction,
+  getPrediction,
+  subscribeToPredictions,
+  getContestSettings,
+  getGroupLeaderboard 
+} from '@/services/predictions';
 
 const ShareInviteCode = ({ code }) => {
   const [copied, setCopied] = useState(false);
@@ -107,6 +123,42 @@ const MembersList = ({ members }) => (
   </div>
 );
 
+const PredictionsSummary = ({ leaderboard, onViewPrediction }) => (
+  <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div className="px-6 py-4 border-b">
+      <h3 className="text-lg font-semibold">Classement</h3>
+    </div>
+    <div className="divide-y">
+      {leaderboard.map((entry) => (
+        <div 
+          key={entry.userId} 
+          className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-4">
+            <span className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white flex items-center justify-center font-bold">
+              {entry.position}
+            </span>
+            <div>
+              <p className="font-medium">{entry.username}</p>
+              <p className="text-sm text-gray-500">
+                {entry.points} points
+              </p>
+            </div>
+          </div>
+          {entry.hasPrediction && entry.isPublic && (
+            <button
+              onClick={() => onViewPrediction(entry.userId)}
+              className="text-pink-600 hover:text-pink-700 text-sm font-medium"
+            >
+              Voir le pronostic
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 const GroupSettings = ({ onRename, onDelete, isAdmin }) => {
   if (!isAdmin) return null;
 
@@ -140,12 +192,18 @@ const GroupSettings = ({ onRename, onDelete, isAdmin }) => {
 
 const GroupDetailPage = () => {
   const { groupId } = useParams();
+  const { user } = useAuth();
   const [group, setGroup] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [predictions, setPredictions] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [contestSettings, setContestSettings] = useState(null);
+  const [showPredictionForm, setShowPredictionForm] = useState(false);
+  const [selectedPrediction, setSelectedPrediction] = useState(null);
   const isAdmin = true; // À gérer avec les droits utilisateur
 
   useEffect(() => {
-    // Simuler le chargement des données du groupe
+    // Charger les données du groupe
     setGroup({
       name: "Les experts Miss France",
       inviteCode: "MISSFR2025",
@@ -156,6 +214,7 @@ const GroupDetailPage = () => {
       ]
     });
 
+    // Charger les messages
     setMessages([
       {
         id: '1',
@@ -164,7 +223,34 @@ const GroupDetailPage = () => {
         timestamp: new Date().toISOString()
       }
     ]);
+
+    // Charger les paramètres du concours
+    const loadContestSettings = async () => {
+      const settings = await getContestSettings();
+      setContestSettings(settings);
+    };
+
+    // Charger le classement
+    const loadLeaderboard = async () => {
+      const board = await getGroupLeaderboard(groupId);
+      setLeaderboard(board);
+    };
+
+    // S'abonner aux pronostics
+    const unsubscribe = subscribeToPredictions(groupId, (updatedPredictions) => {
+      setPredictions(updatedPredictions);
+    });
+
+    loadContestSettings();
+    loadLeaderboard();
+
+    return () => unsubscribe();
   }, [groupId]);
+
+  const handlePredictionSubmit = async (predictionData) => {
+    await savePrediction(user.uid, groupId, predictionData);
+    setShowPredictionForm(false);
+  };
 
   const handleSendMessage = (text) => {
     const newMessage = {
@@ -188,8 +274,35 @@ const GroupDetailPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Colonne gauche */}
-          <div className="lg:col-span-1 space-y-6">
+          {/* Section principale */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Pronostics</h2>
+                {!contestSettings?.isStarted && (
+                  <button
+                    onClick={() => setShowPredictionForm(true)}
+                    className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded hover:from-pink-600 hover:to-purple-600"
+                  >
+                    {predictions.some(p => p.userId === user.uid)
+                      ? 'Modifier mon pronostic'
+                      : 'Faire mon pronostic'
+                    }
+                  </button>
+                )}
+              </div>
+
+              <PredictionsSummary 
+                leaderboard={leaderboard}
+                onViewPrediction={setSelectedPrediction}
+              />
+            </div>
+
+            <Chat messages={messages} onSendMessage={handleSendMessage} />
+          </div>
+
+          {/* Barre latérale */}
+          <div className="space-y-6">
             <MembersList members={group.members} />
             <ShareInviteCode code={group.inviteCode} />
             <GroupSettings 
@@ -198,13 +311,45 @@ const GroupDetailPage = () => {
               onDelete={() => console.log('Supprimer le groupe')}
             />
           </div>
-
-          {/* Colonne droite - Chat */}
-          <div className="lg:col-span-2">
-            <Chat messages={messages} onSendMessage={handleSendMessage} />
-          </div>
         </div>
       </div>
+
+      {/* Modal formulaire de pronostic */}
+      <Dialog open={showPredictionForm} onOpenChange={setShowPredictionForm}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {predictions.some(p => p.userId === user.uid)
+                ? 'Modifier mon pronostic'
+                : 'Faire mon pronostic'
+              }
+            </DialogTitle>
+          </DialogHeader>
+          <PredictionForm 
+            onSubmit={handlePredictionSubmit}
+            initialPredictions={predictions.find(p => p.userId === user.uid)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal détails d'un pronostic */}
+      <Dialog 
+        open={!!selectedPrediction} 
+        onOpenChange={() => setSelectedPrediction(null)}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Détails du pronostic</DialogTitle>
+          </DialogHeader>
+          {selectedPrediction && (
+            <PredictionDetails
+              prediction={predictions.find(p => p.userId === selectedPrediction)}
+              user={group.members.find(m => m.id === selectedPrediction)}
+              showPrivate={contestSettings?.isStarted}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
