@@ -5,6 +5,7 @@ import MissCard from '../components/MissCard';
 import GameRules from '../components/GameRules';
 import PreviewModal from '../components/PreviewModal';
 import ConfirmationModal from '../components/ConfirmationModal';
+import PointsSystem from '../components/PointsSystem';
 
 import missNordImg from '../assets/images/miss/miss-nord-pas-de-calais.jpg';
 import missAlsaceImg from '../assets/images/miss/miss-alsace.jpg';
@@ -112,13 +113,22 @@ const RankingPage = () => {
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <Link 
-            to={`/group/${groupId}`}
-            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Retour au groupe
-          </Link>
+          <div className="flex justify-between items-center mb-4">
+            <Link 
+              to={`/group/${groupId}`}
+              className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Retour au groupe
+            </Link>
+            
+            <Link 
+              to="/dashboard"
+              className="inline-flex items-center px-4 py-2 text-sm text-white bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg hover:from-pink-600 hover:to-purple-600 transition-colors"
+            >
+              Mon dashboard
+            </Link>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">
             Mes pronostics Miss France 2025
           </h1>
@@ -256,6 +266,11 @@ const RankingPage = () => {
 
             {/* Règles du jeu */}
             <GameRules />
+
+            {/* Système de points */}
+            <div className="mb-8">
+              <PointsSystem />
+            </div>
           </div>
         </div>
 
