@@ -100,13 +100,13 @@ const JoinGroupPage = () => {
                 id="groupCode"
                 value={groupCode}
                 onChange={(e) => setGroupCode(e.target.value.toUpperCase())}
-                maxLength={6}
+                maxLength={8}
                 placeholder="Exemple : ABC123"
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-200 focus:border-pink-500 transition-shadow"
                 disabled={loading}
               />
               <p className="mt-2 text-sm text-gray-500">
-                Le code est composé de 6 caractères
+                Le code est composé de 8 caractères
               </p>
             </div>
 
@@ -120,9 +120,9 @@ const JoinGroupPage = () => {
               </button>
               <button
                 type="submit"
-                disabled={loading || groupCode.length !== 6}
+                disabled={loading || groupCode.length !== 8}
                 className={`flex-1 px-4 py-2 text-white rounded-lg 
-                  ${loading || groupCode.length !== 6
+                  ${loading || groupCode.length !== 8
                     ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600'
                   } transition-colors`}
