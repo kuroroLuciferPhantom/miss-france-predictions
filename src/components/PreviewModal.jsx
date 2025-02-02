@@ -38,7 +38,7 @@ const PreviewModal = ({ isOpen, onClose, selections }) => {
                       <img 
                         src={selections.top5[index].photo}
                         alt={selections.top5[index].name}
-                        className="w-full h-48 object-cover rounded-lg mb-2"
+                        className="w-full h-48 object-contain rounded-lg mb-2"
                       />
                       <h5 className="font-semibold">{selections.top5[index].name}</h5>
                       <p className="text-gray-600">Miss {selections.top5[index].region}</p>
@@ -58,7 +58,7 @@ const PreviewModal = ({ isOpen, onClose, selections }) => {
                       <img 
                         src={selections.top5[index].photo}
                         alt={selections.top5[index].name}
-                        className="w-full h-48 object-cover rounded-lg mb-2"
+                        className="w-full h-48 object-contain rounded-lg mb-2"
                       />
                       <h5 className="font-semibold">{selections.top5[index].name}</h5>
                       <p className="text-gray-600">Miss {selections.top5[index].region}</p>
@@ -77,7 +77,7 @@ const PreviewModal = ({ isOpen, onClose, selections }) => {
                   <img 
                     src={miss.photo}
                     alt={miss.name}
-                    className="w-full h-32 object-cover rounded-lg mb-2"
+                    className="w-full h-32 object-contain rounded-lg mb-2"
                   />
                   <h5 className="font-semibold">{miss.name}</h5>
                   <p className="text-gray-600">Miss {miss.region}</p>

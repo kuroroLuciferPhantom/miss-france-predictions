@@ -8,22 +8,16 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
       <div className="bg-white rounded-lg p-6 max-w-md mx-4">
         <h3 className="text-xl font-bold mb-4">Confirmer la validation</h3>
         <p className="mb-6">
-          Attention, une fois validé, votre pronostic ne pourra plus être modifié et restera caché jusqu'à 21h15 le jour de l'élection. Êtes-vous sûr(e) de vouloir valider définitivement ?
-        </p>
-        <div className="flex justify-end space-x-4">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
-          >
-            Annuler
-          </button>
+            Voulez-vous sauvegarder vos pronostics ? Vous pourrez les modifier jusqu'au début de l'émission.
+          </p>
+
+          {/* Modifier aussi le texte du bouton */}
           <button
             onClick={onConfirm}
             className="px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 transition-colors"
           >
-            Valider définitivement
+            Sauvegarder
           </button>
-        </div>
       </div>
     </div>
   );
