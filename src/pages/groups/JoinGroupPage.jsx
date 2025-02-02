@@ -24,7 +24,7 @@ const JoinGroupPage = () => {
       // Recherche du groupe avec le code
       const groupQuery = query(
         collection(db, 'groups'),
-        where('code', '==', groupCode.toUpperCase())
+        where('inviteCode', '==', groupCode.toUpperCase())
       );
 
       const querySnapshot = await getDocs(groupQuery);
@@ -47,10 +47,10 @@ const JoinGroupPage = () => {
 
       // Ajouter l'utilisateur au groupe
       await updateDoc(doc(db, 'groups', groupDoc.id), {
-        memberIds: [...(groupData.memberIds || []), user.uid],
         members: [...(groupData.members || []), {
-          id: user.uid,
-          displayName: user.username || user.displayName || user.email.split('@')[0],
+          userId: user.uid,
+          username: user.username || user.email.split('@')[0],
+          role: 'member',
           joinedAt: new Date().toISOString()
         }]
       });
