@@ -149,92 +149,12 @@ const RankingPage = () => {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Colonne de gauche : Sélections actuelles */}
-          <div className="lg:col-span-7 space-y-6">
-            {/* Top 5 */}
+        <div className="grid grid-cols-12 gap-8">
+          {/* Colonne gauche - Candidates disponibles (8/12 = ~2/3) */}
+          <div className="col-span-8">
             <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">Votre Top 5</h2>
-              </div>
-              <div className="p-4 space-y-4">
-                {titles.map((title, index) => (
-                  <div key={title} className="relative bg-gray-50 p-4 rounded-lg">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">{title}</h3>
-                    {index < 3 ? (
-                      top3[index] ? (
-                        <MissCard
-                          miss={top3[index]}
-                          isSelected
-                          selectionType="top3"
-                          showRemoveButton
-                          onRemove={() => handleRemove(top3[index], 'top3')}
-                        />
-                      ) : (
-                        <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 flex justify-center items-center text-gray-400">
-                          Sélectionnez une Miss
-                        </div>
-                      )
-                    ) : (
-                      top5[index - 3] ? (
-                        <MissCard
-                          miss={top5[index - 3]}
-                          isSelected
-                          selectionType="top5"
-                          showRemoveButton
-                          onRemove={() => handleRemove(top5[index - 3], 'top5')}
-                        />
-                      ) : (
-                        <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 flex justify-center items-center text-gray-400">
-                          Sélectionnez une Miss
-                        </div>
-                      )
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Autres qualifiées */}
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">
-                  Les 10 autres Miss qualifiées
-                  <span className="ml-2 text-sm text-gray-500">
-                    ({qualified.length}/10)
-                  </span>
-                </h2>
-              </div>
-              <div className="p-4">
-                <div className="grid grid-cols-2 gap-4">
-                  {qualified.map(miss => (
-                    <MissCard
-                      key={miss.id}
-                      miss={miss}
-                      isSelected
-                      selectionType="qualified"
-                      showRemoveButton
-                      onRemove={() => handleRemove(miss, 'qualified')}
-                    />
-                  ))}
-                  {Array.from({ length: 10 - qualified.length }).map((_, index) => (
-                    <div
-                      key={`empty-${index}`}
-                      className="border-2 border-dashed border-gray-200 rounded-lg p-4 flex justify-center items-center text-gray-400"
-                    >
-                      Sélectionnez une Miss
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Colonne de droite : Candidates disponibles et règles */}
-          <div className="lg:col-span-5 space-y-6">
-            {/* Candidates disponibles */}
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-4 border-b border-gray-200">
+              <div className="p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+                {/* Header avec titre et bouton galerie */}
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-medium text-gray-900">
                     Candidates disponibles
@@ -267,8 +187,9 @@ const RankingPage = () => {
                 </div>
               </div>
 
-              <div className="p-4">
-                <div className="grid grid-cols-2 gap-4">
+              {/* Grille des candidates avec scroll */}
+              <div className="p-4 overflow-y-auto max-h-[calc(100vh-300px)]">
+                <div className="grid grid-cols-3 gap-4">
                   {filteredAvailableMisses.length > 0 ? (
                     filteredAvailableMisses.map(miss => (
                       <MissCard
@@ -278,44 +199,122 @@ const RankingPage = () => {
                       />
                     ))
                   ) : (
-                    <div className="col-span-2 text-center py-8 text-gray-500">
+                    <div className="col-span-3 text-center py-8 text-gray-500">
                       Aucune candidate ne correspond à votre recherche
                     </div>
                   )}
                 </div>
               </div>
             </div>
+            {/* Système de points */}
+            <div className="mt-8">
+              <PointsSystem />
+            </div>
 
+            {/* Actions footer */}
+            <div className="mt-8 flex justify-end space-x-4">
+              <button
+                onClick={() => setIsPreviewOpen(true)}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50"
+              >
+                Aperçu
+              </button>
+              <button
+                onClick={() => setIsConfirmationOpen(true)}
+                disabled={!isSelectionComplete}
+                className={`px-6 py-2 rounded-lg shadow-sm ${
+                  isSelectionComplete
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                Valider mes pronostics
+              </button>
+            </div>
+          </div>
+
+          {/* Colonne droite - Sélections (4/12 = ~1/3) */}
+          <div className="col-span-4 space-y-6">
             {/* Règles du jeu */}
             <GameRules />
+            {/* Top 5 */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="text-lg font-medium text-gray-900">Votre Top 5</h2>
+              </div>
+              <div className="p-4 space-y-4">
+                {titles.map((title, index) => (
+                  <div key={title} className="relative">
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">{title}</h3>
+                    {index < 3 ? (
+                      top3[index] ? (
+                        <MissCard
+                          miss={top3[index]}
+                          isSelected
+                          selectionType="top3"
+                          showRemoveButton
+                          onRemove={() => handleRemove(top3[index], 'top3')}
+                          rank={title}
+                        />
+                      ) : (
+                        <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 flex justify-center items-center text-gray-400 h-24">
+                          Sélectionnez une Miss
+                        </div>
+                      )
+                    ) : (
+                      top5[index - 3] ? (
+                        <MissCard
+                          miss={top5[index - 3]}
+                          isSelected
+                          selectionType="top5"
+                          showRemoveButton
+                          onRemove={() => handleRemove(top5[index - 3], 'top5')}
+                          rank={title}
+                        />
+                      ) : (
+                        <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 flex justify-center items-center text-gray-400 h-24">
+                          Sélectionnez une Miss
+                        </div>
+                      )
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
 
-            {/* Système de points */}
-            <div className="mb-8">
-              <PointsSystem />
+            {/* Qualifiées */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="text-lg font-medium text-gray-900">
+                  Autres Miss qualifiées
+                  <span className="ml-2 text-sm text-gray-500">
+                    ({qualified.length}/10)
+                  </span>
+                </h2>
+              </div>
+              <div className="p-4">
+                <div className="space-y-2">
+                  {qualified.map(miss => (
+                    <MissCard
+                      key={miss.id}
+                      miss={miss}
+                      isSelected
+                      selectionType="qualified"
+                      showRemoveButton
+                      onRemove={() => handleRemove(miss, 'qualified')}
+                    />
+                  ))}
+                  {qualified.length < 10 && (
+                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 flex justify-center items-center text-gray-400 h-24">
+                      Sélectionnez encore {10 - qualified.length} Miss
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Actions footer */}
-        <div className="mt-8 flex justify-end space-x-4">
-          <button
-            onClick={() => setIsPreviewOpen(true)}
-            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50"
-          >
-            Aperçu
-          </button>
-          <button
-            onClick={() => setIsConfirmationOpen(true)}
-            disabled={!isSelectionComplete}
-            className={`px-6 py-2 rounded-lg shadow-sm ${
-              isSelectionComplete
-                ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            Valider mes pronostics
-          </button>
-        </div>
+        
 
         {/* Modals */}
         <PreviewModal
