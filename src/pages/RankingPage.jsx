@@ -6,61 +6,9 @@ import GameRules from '../components/GameRules';
 import PreviewModal from '../components/PreviewModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import PointsSystem from '../components/PointsSystem';
+import MissGalleryModal from '../components/MissGalleryModal';
+import { missData, titles } from '../data/missData';
 
-import missNordImg from '../assets/images/miss/miss-nord-pas-de-calais.jpg';
-import missAlsaceImg from '../assets/images/miss/miss-alsace.jpg';
-import missBretagneImg from '../assets/images/miss/miss-bretagne.jpg';
-import missProvenceImg from '../assets/images/miss/miss-provence.jpg';
-
-// Données de test (à remplacer par les vraies données)
-const testMisses = [
-  {
-    id: 1,
-    name: "Eve Gilles",
-    region: "Nord-Pas-de-Calais",
-    photo: missNordImg,
-    socialMedia: {
-      instagram: "evegilles",
-      tiktok: "@evegilles"
-    }
-  },
-  {
-    id: 2,
-    name: "Adeline Vetter",
-    region: "Alsace",
-    photo: missAlsaceImg,
-    socialMedia: {
-      instagram: "adelinevetter",
-      tiktok: "@adelinevetter"
-    }
-  },
-  {
-    id: 3,
-    name: "Marie Lambert",
-    region: "Bretagne",
-    photo: missBretagneImg,
-    socialMedia: {
-      instagram: "https://instagram.com"
-    }
-  },
-  {
-    id: 4,
-    name: "Julie Petit",
-    region: "Provence",
-    photo: missProvenceImg,
-    socialMedia: {
-      instagram: "https://instagram.com"
-    }
-  }
-];
-
-const titles = [
-  "Miss France 2025",
-  "1ère Dauphine",
-  "2ème Dauphine",
-  "3ème Dauphine",
-  "4ème Dauphine"
-];
 
 const RankingPage = () => {
   const { groupId } = useParams();
@@ -68,10 +16,11 @@ const RankingPage = () => {
   const [top3, setTop3] = useState([]);
   const [top5, setTop5] = useState([]);
   const [qualified, setQualified] = useState([]);
-  const [availableMisses, setAvailableMisses] = useState(testMisses);
+  const [availableMisses, setAvailableMisses] = useState(missData);
   const [selectionStep, setSelectionStep] = useState('top3');
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   const handleMissSelect = (miss) => {
     if (selectionStep === 'top3' && top3.length < 3) {
@@ -107,6 +56,38 @@ const RankingPage = () => {
   };
 
   const isSelectionComplete = top3.length === 3 && top5.length === 2 && qualified.length === 10;
+
+  const getAllMisses = () => {
+    const selectedMisses = [...top3, ...top5, ...qualified];
+    return missData.map(miss => {
+      let selectionStatus = null;
+      let rank = null;
+  
+      // Vérifier top3
+      const top3Index = top3.findIndex(m => m.id === miss.id);
+      if (top3Index !== -1) {
+        selectionStatus = 'top3';
+        rank = titles[top3Index]; // "Miss France 2025", "1ère Dauphine", "2ème Dauphine"
+      } 
+      // Vérifier top5
+      const top5Index = top5.findIndex(m => m.id === miss.id);
+      if (top5Index !== -1) {
+        selectionStatus = 'top5';
+        rank = titles[top5Index + 3]; // "3ème Dauphine", "4ème Dauphine"
+      }
+      // Vérifier qualifiées
+      if (qualified.find(m => m.id === miss.id)) {
+        selectionStatus = 'qualified';
+      }
+  
+      return {
+        ...miss,
+        isSelected: !!selectionStatus,
+        selectionStatus,
+        rank
+      };
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -244,23 +225,34 @@ const RankingPage = () => {
             {/* Candidates disponibles */}
             <div className="bg-white rounded-lg shadow-sm">
               <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">
-                  Candidates disponibles
-                  <span className="ml-2 text-sm text-gray-500">
-                    ({availableMisses.length})
-                  </span>
-                </h2>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-lg font-medium text-gray-900">
+                    Candidates disponibles
+                  </h2>
+                  <button
+                    onClick={() => setIsGalleryOpen(true)}
+                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    Voir toutes les Miss
+                  </button>
+                </div>
               </div>
               <div className="p-4">
-                <div className="grid grid-cols-2 gap-4">
-                  {availableMisses.map(miss => (
-                    <MissCard
-                      key={miss.id}
-                      miss={miss}
-                      onSelect={() => handleMissSelect(miss)}
-                    />
-                  ))}
-                </div>
+                  <div>
+                    <p className="mb-4 text-sm text-gray-500">Mode normal - Candidates disponibles</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {availableMisses.map(miss => (
+                        <MissCard
+                          key={miss.id}
+                          miss={miss}
+                          onSelect={() => handleMissSelect(miss)}
+                        />
+                      ))}
+                    </div>
+                  </div>
               </div>
             </div>
 
@@ -308,6 +300,12 @@ const RankingPage = () => {
           isOpen={isConfirmationOpen}
           onClose={() => setIsConfirmationOpen(false)}
           onConfirm={handleSubmit}
+        />
+
+        <MissGalleryModal
+          isOpen={isGalleryOpen}
+          onClose={() => setIsGalleryOpen(false)}
+          misses={getAllMisses()}
         />
       </div>
     </div>
