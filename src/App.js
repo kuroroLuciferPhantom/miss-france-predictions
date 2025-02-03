@@ -15,6 +15,7 @@ import RankingPage from './pages/RankingPage';
 import LegalPage from './pages/legal/LegalPage';
 import TermsPage from './pages/legal/TermsPage';
 import PolitiqueConfidentialitePage from './pages/legal/PolitiqueConfidentialitePage';
+import ProfilePage from './pages/profile/ProfilePage';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/dashboard" element={

@@ -22,9 +22,8 @@ const ProfileDropdown = () => {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
-      setIsOpen(false);
-      navigate('/login');
+        await signOut();
+        navigate('/login');
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
     }
@@ -54,14 +53,6 @@ const ProfileDropdown = () => {
           >
             <User className="w-4 h-4 mr-3" />
             Mon profil
-          </Link>
-          <Link
-            to="/profile/settings"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            onClick={() => setIsOpen(false)}
-          >
-            <Settings className="w-4 h-4 mr-3" />
-            Paramètres
           </Link>
           <hr className="my-1" />
           <button
