@@ -4,10 +4,21 @@ import { ArrowLeft } from 'lucide-react';
 import LeaderboardTable from '../../components/groups/LeaderboardTable';
 import PredictionsList from '../../components/groups/PredictionsList';
 import GroupStats from '../../components/groups/GroupStats';
-import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { collection, query, orderBy, addDoc, onSnapshot } from 'firebase/firestore';
+import UserPredictionSummary from '../../components/groups/UserPredictionSummary';
+import { 
+  doc, 
+  getDoc, 
+  collection, 
+  query, 
+  where, 
+  orderBy, 
+  addDoc, 
+  onSnapshot, 
+  getDocs 
+} from 'firebase/firestore';
+
 
 
 const ShareInviteCode = ({ code }) => {
@@ -161,6 +172,7 @@ const GroupDetailPage = () => {
   useEffect(() => {
     const fetchGroupData = async () => {
       try {
+        // Récupérer le groupe
         const groupRef = doc(db, 'groups', groupId);
         const groupSnapshot = await getDoc(groupRef);
         
@@ -170,97 +182,35 @@ const GroupDetailPage = () => {
             id: groupSnapshot.id,
             ...groupData,
           });
-  
-          // Vérifier si l'utilisateur est admin
           setIsAdmin(groupData.admin === user.uid);
+  
+          // Récupérer les prédictions de l'utilisateur
+          const predictionsRef = collection(db, 'predictions');
+          const q = query(
+            predictionsRef,
+            where('groupId', '==', groupId),
+            where('userId', '==', user.uid)
+          );
+          const predictionsSnapshot = await getDocs(q);
+          
+          if (!predictionsSnapshot.empty) {
+            const prediction = predictionsSnapshot.docs[0].data();
+            setUserHasPredicted(true);
+            // Mettre à jour les prédictions avec la prédiction de l'utilisateur
+            setPredictions([prediction]);
+          } else {
+            setUserHasPredicted(false);
+            setPredictions([]);
+          }
         }
       } catch (error) {
-        console.error('Erreur lors du chargement du groupe:', error);
+        console.error('Erreur lors du chargement des données:', error);
       }
     };
-  
-    // Écoute des messages en temps réel
-    const messagesRef = collection(db, 'groups', groupId, 'chat');  // 'chat' au lieu de 'messages'
-    const messagesQuery = query(messagesRef, orderBy('timestamp', 'asc'));
-
-  
-    const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
-      const newMessages = [];
-      snapshot.forEach((doc) => {
-        newMessages.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      setMessages(newMessages);
-    });
   
     if (groupId) {
       fetchGroupData();
     }
-  
-    // Garder temporairement les données de test pour les prédictions
-    setEventStarted(false);
-
-    // Simuler les données de pronostics
-    setPredictions([
-      {
-        userId: '1',
-        username: 'Alice',
-        isPublic: true,
-        top5: [
-          { id: '1', name: 'Miss Alsace' },
-          { id: '2', name: 'Miss Île-de-France' },
-          { id: '3', name: 'Miss Provence' },
-          { id: '4', name: 'Miss Normandie' },
-          { id: '5', name: 'Miss Aquitaine' }
-        ],
-        qualifiees: [
-          { id: '6', name: 'Miss Bretagne' },
-          { id: '7', name: 'Miss Réunion' },
-          { id: '8', name: 'Miss Nord-Pas-de-Calais' },
-          { id: '9', name: 'Miss Lorraine' },
-          { id: '10', name: 'Miss Corse' },
-          { id: '11', name: 'Miss Languedoc' },
-          { id: '12', name: 'Miss Rhône-Alpes' },
-          { id: '13', name: 'Miss Pays de Loire' },
-          { id: '14', name: 'Miss Picardie' },
-          { id: '15', name: 'Miss Midi-Pyrénées' }
-        ]
-      },
-      {
-        userId: '2',
-        username: 'Bob',
-        isPublic: false,
-        top5: [],
-        qualifiees: []
-      },
-      {
-        userId: '3',
-        username: 'Charlie',
-        isPublic: true,
-        top5: [
-          { id: '2', name: 'Miss Île-de-France' },
-          { id: '1', name: 'Miss Alsace' },
-          { id: '5', name: 'Miss Aquitaine' },
-          { id: '3', name: 'Miss Provence' },
-          { id: '7', name: 'Miss Réunion' }
-        ],
-        qualifiees: [
-          { id: '4', name: 'Miss Normandie' },
-          { id: '6', name: 'Miss Bretagne' },
-          { id: '8', name: 'Miss Nord-Pas-de-Calais' },
-          { id: '9', name: 'Miss Lorraine' },
-          { id: '10', name: 'Miss Corse' },
-          { id: '11', name: 'Miss Languedoc' },
-          { id: '12', name: 'Miss Rhône-Alpes' },
-          { id: '13', name: 'Miss Pays de Loire' },
-          { id: '14', name: 'Miss Picardie' },
-          { id: '15', name: 'Miss Midi-Pyrénées' }
-        ]
-      }
-    ]);
-    return () => unsubscribe();
   }, [groupId, user]);
 
   const handleSendMessage = async (text) => {
@@ -332,23 +282,12 @@ const GroupDetailPage = () => {
 
           {/* Colonne droite - Pronostics, Classement et Chat */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Bouton de pronostic */}
-            <div className="flex justify-end">
-              <Link
-                to={`/group/${groupId}/prediction`}
-                className={`px-6 py-3 font-semibold rounded-lg shadow-sm transition-colors inline-block
-                  ${eventStarted 
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none'
-                    : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600'
-                  }`}
-              >
-                {eventStarted 
-                  ? 'Pronostics verrouillés' 
-                  : userHasPredicted 
-                    ? 'Modifier mon pronostic' 
-                    : 'Faire mon pronostic'
-                }
-              </Link>
+            {/* Résumé des pronostics de l'utilisateur */}
+            <div className="mb-6">
+              <UserPredictionSummary 
+                prediction={predictions.find(p => p.userId === user.uid)}
+                groupId={groupId}
+              />
             </div>
 
             {/* Navigation par onglets */}

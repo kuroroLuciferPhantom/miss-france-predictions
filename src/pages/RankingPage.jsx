@@ -70,6 +70,17 @@ const RankingPage = () => {
     setIsSaving(true);
     setError(null);
     try {
+      // Vérifier si une prédiction existe déjà
+      const predictionsRef = collection(db, 'predictions');
+      const q = query(
+        predictionsRef,
+        where('userId', '==', user.uid),
+        where('groupId', '==', groupId)
+      );
+      const querySnapshot = await getDocs(q);
+      const existingPrediction = querySnapshot.empty ? null : querySnapshot.docs[0];
+  
+      // Création de l'objet prédiction
       const predictionData = {
         userId: user.uid,
         groupId,
@@ -89,51 +100,45 @@ const RankingPage = () => {
           region: miss.region
         })),
         lastUpdated: new Date().toISOString(),
-        isPublic,
+        isPublic: isPublic,
         isComplete: top3.length === 3 && top5.length === 2 && qualified.length === 10
       };
   
-      const predictionsRef = collection(db, 'predictions');
-      const q = query(
-        predictionsRef,
-        where('userId', '==', user.uid),
-        where('groupId', '==', groupId)
-      );
-      const querySnapshot = await getDocs(q);
-
+      if (existingPrediction) {
+        // Update existant
+        await updateDoc(doc(db, 'predictions', existingPrediction.id), predictionData);
+        setSuccessMessage('Vos pronostics ont été mis à jour !');
+      } else {
+        // Nouvelle prédiction
+        await setDoc(doc(collection(db, 'predictions')), predictionData);
+        setSuccessMessage('Vos pronostics ont été enregistrés !');
+      }
+  
       // Mettre à jour les stats du groupe
       const groupRef = doc(db, 'groups', groupId);
       const groupDoc = await getDoc(groupRef);
       const groupData = groupDoc.data();
-      
+  
       // Si c'est une nouvelle prédiction
       if (!existingPrediction) {
         await updateDoc(groupRef, {
           'predictionStats.totalPredictions': (groupData.predictionStats?.totalPredictions || 0) + 1,
-          'predictionStats.completedPredictions': isComplete 
+          'predictionStats.completedPredictions': predictionData.isComplete 
             ? (groupData.predictionStats?.completedPredictions || 0) + 1 
             : (groupData.predictionStats?.completedPredictions || 0)
         });
       } 
       // Si c'est une mise à jour et que la prédiction devient complète
-      else if (isComplete && !existingPrediction.isComplete) {
+      else if (predictionData.isComplete && !existingPrediction.data().isComplete) {
         await updateDoc(groupRef, {
           'predictionStats.completedPredictions': (groupData.predictionStats?.completedPredictions || 0) + 1
         });
       }
   
-      if (!querySnapshot.empty) {
-        await updateDoc(doc(db, 'predictions', querySnapshot.docs[0].id), predictionData);
-        setSuccessMessage('Vos pronostics ont été mis à jour !');
-      } else {
-        await setDoc(doc(collection(db, 'predictions')), predictionData);
-        setSuccessMessage('Vos pronostics ont été enregistrés !');
-      }
-  
       setIsConfirmationOpen(false);
       setTimeout(() => {
         navigate(`/group/${groupId}`);
-      }, 2000); // Délai pour voir le message de succès
+      }, 2000);
   
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
