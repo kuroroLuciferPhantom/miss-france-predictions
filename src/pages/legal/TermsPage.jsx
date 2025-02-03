@@ -16,10 +16,10 @@ const TermsPage = () => {
                 Le service est fourni à titre gratuit et dans un but ludique et communautaire.
               </p>
               <ul className="list-disc pl-5 text-gray-600 space-y-2">
-                <li>Vous devez avoir plus de 13 ans pour utiliser ce service</li>
-                <li>Vous êtes responsable de la confidentialité de votre compte</li>
-                <li>Vos pronostics peuvent être rendus publics selon vos paramètres</li>
-                <li>L'utilisation abusive du service peut entraîner la suspension du compte</li>
+                <li>Vous devez avoir plus de 13 ans pour utiliser ce service.</li>
+                <li>Vous êtes responsable de la confidentialité de votre compte.</li>
+                <li>Vos pronostics peuvent être rendus publics selon vos paramètres.</li>
+                <li>L'utilisation abusive du service peut entraîner la suspension du compte.</li>
               </ul>
             </section>
 
@@ -37,6 +37,15 @@ const TermsPage = () => {
               <p className="text-gray-600">
                 Miss France Predictions ne peut être tenu responsable des erreurs dans les informations fournies.
                 Le site peut être indisponible temporairement pour maintenance ou mises à jour.
+                Les utilisateurs sont seuls responsables de leurs choix et interprétations des données affichées sur le site.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Comportement des Utilisateurs</h2>
+              <p className="text-gray-600">
+                Tout comportement inapproprié, insultant ou diffamatoire entraînera une suspension immédiate du compte.
+                Les utilisateurs s'engagent à respecter les règles de bienveillance et de respect sur la plateforme.
               </p>
             </section>
 
@@ -44,7 +53,16 @@ const TermsPage = () => {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Modification des Conditions</h2>
               <p className="text-gray-600">
                 Nous nous réservons le droit de modifier ces conditions d'utilisation à tout moment.
-                Les utilisateurs seront informés des changements importants.
+                Les utilisateurs seront informés des changements importants par notification sur le site.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Contact</h2>
+              <p className="text-gray-600">
+                Pour toute question ou réclamation concernant ces conditions, veuillez nous contacter à : <br/>
+                Email : [adresse email de contact] <br/>
+                Adresse postale : [adresse complète, si nécessaire]
               </p>
             </section>
           </div>

@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, PrivateRoute } from './contexts/AuthContext';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/home/HomePage';
+import ContactPage from './pages/home/ContactPage';
 import LoginPage from './pages/auth/LoginPage';
 import SignUpPage from './pages/auth/SignUpPage';
 import OnboardingPage from './pages/onboarding/OnboardingPage';
@@ -11,7 +12,9 @@ import CreateGroupPage from './pages/groups/CreateGroupPage';
 import JoinGroupPage from './pages/groups/JoinGroupPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import RankingPage from './pages/RankingPage';
-
+import LegalPage from './pages/legal/LegalPage';
+import TermsPage from './pages/legal/TermsPage';
+import PolitiqueConfidentialitePage from './pages/legal/PolitiqueConfidentialitePage';
 
 function App() {
   return (
@@ -51,6 +54,10 @@ function App() {
               <RankingPage />
             </PrivateRoute>
           } />
+          <Route path="/mentions-legales" element={<LegalPage />} />
+          <Route path="/conditions-utilisation" element={<TermsPage />} />
+          <Route path="/confidentialite" element={<PolitiqueConfidentialitePage />} />
+          <Route path="/contact" element={<ContactPage />} />
         </Routes>
       </AuthProvider>
     </Layout>

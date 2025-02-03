@@ -21,23 +21,44 @@ const LegalPage = () => {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Droits d'Auteur</h2>
               <p className="text-gray-600">
                 Les photos utilisées sur ce site restent la propriété exclusive de leurs auteurs respectifs. 
-                L'utilisation de ces photos est uniquement à but informatif dans le cadre des pronostics.
+                Si vous êtes propriétaire d'une image et souhaitez qu'elle soit retirée, veuillez nous contacter.
+                Aucune image protégée ne sera utilisée sans autorisation explicite.
               </p>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Protection des Données</h2>
               <p className="text-gray-600">
-                Les données personnelles collectées sont uniquement utilisées dans le cadre du fonctionnement du site. 
-                Aucune donnée n'est transmise à des tiers.
+                Les données personnelles collectées (nom, adresse email, etc.) sont uniquement utilisées pour le bon fonctionnement du site et la gestion des comptes utilisateurs. 
+                Conformément au Règlement Général sur la Protection des Données (RGPD), vous avez un droit d'accès, de rectification et de suppression de vos données. 
+                Pour exercer ce droit, contactez-nous à l'adresse mentionnée ci-dessous.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Responsabilité</h2>
+              <p className="text-gray-600">
+                Miss France Predictions ne peut être tenu responsable des contenus publiés par ses utilisateurs, ni des erreurs ou omissions présentes sur le site. 
+                Les informations partagées sont purement indicatives et n'ont aucune valeur contractuelle.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Hébergement</h2>
+              <p className="text-gray-600">
+                Ce site est hébergé par : <br/>
+                [Nom de l'hébergeur] <br/>
+                [Adresse de l'hébergeur] <br/>
+                [Contact de l'hébergeur]
               </p>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Contact</h2>
               <p className="text-gray-600">
-                Pour toute question ou réclamation concernant le site ou les données personnelles, vous pouvez nous contacter via :
-                [adresse email de contact]
+                Pour toute question ou réclamation concernant le site ou les données personnelles, vous pouvez nous contacter via : <br/>
+                Email : [adresse email de contact] <br/>
+                Adresse postale : [adresse complète, si nécessaire]
               </p>
             </section>
           </div>
