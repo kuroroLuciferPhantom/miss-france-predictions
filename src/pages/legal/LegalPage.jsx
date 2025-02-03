@@ -12,7 +12,7 @@ const LegalPage = () => {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Site Indépendant</h2>
               <p className="text-gray-600">
-                Miss Pronos est un site indépendant et n'est en aucun cas affilié à Miss France SAS ou à toute autre entité officielle du concours Miss France. 
+                Miss'Pronos est un site indépendant et n'est en aucun cas affilié à Miss France SAS ou à toute autre entité officielle du concours Miss France. 
                 Ce site est une initiative de fans permettant aux passionnés de partager leurs pronostics.
               </p>
             </section>
@@ -38,7 +38,7 @@ const LegalPage = () => {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Responsabilité</h2>
               <p className="text-gray-600">
-                Miss Pronos ne peut être tenu responsable des contenus publiés par ses utilisateurs, ni des erreurs ou omissions présentes sur le site. 
+                Miss'Pronos ne peut être tenu responsable des contenus publiés par ses utilisateurs, ni des erreurs ou omissions présentes sur le site. 
                 Les informations partagées sont purement indicatives et n'ont aucune valeur contractuelle.
               </p>
             </section>

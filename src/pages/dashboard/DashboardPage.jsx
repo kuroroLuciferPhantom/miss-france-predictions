@@ -23,7 +23,7 @@ const DashboardPage = () => {
   const { user } = useAuthContext();
 
   useEffect(() => {
-    document.title = "Dashboard - Miss Pronos";
+    document.title = "Dashboard - Miss'Pronos";
   }, []);
 
   useEffect(() => {

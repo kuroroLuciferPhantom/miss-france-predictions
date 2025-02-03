@@ -13,7 +13,7 @@ const Header = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
             </div>
-            <h1 className="ml-3 text-2xl font-bold text-gray-900">Miss France Prédictions</h1>
+            <h1 className="ml-3 text-2xl font-bold text-gray-900">Miss'Pronos</h1>
           </div>
 
           <nav>

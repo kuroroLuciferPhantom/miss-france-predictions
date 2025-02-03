@@ -12,7 +12,7 @@ const TermsPage = () => {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Utilisation du Service</h2>
               <p className="text-gray-600 mb-4">
-                En utilisant Miss Pronos, vous acceptez les présentes conditions d'utilisation.
+                En utilisant Miss'Pronos, vous acceptez les présentes conditions d'utilisation.
                 Le service est fourni à titre gratuit et dans un but ludique et communautaire.
               </p>
               <ul className="list-disc pl-5 text-gray-600 space-y-2">
@@ -35,7 +35,7 @@ const TermsPage = () => {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Limitation de Responsabilité</h2>
               <p className="text-gray-600">
-                Miss Pronos ne peut être tenu responsable des erreurs dans les informations fournies.
+                Miss'Pronos ne peut être tenu responsable des erreurs dans les informations fournies.
                 Le site peut être indisponible temporairement pour maintenance ou mises à jour.
                 Les utilisateurs sont seuls responsables de leurs choix et interprétations des données affichées sur le site.
               </p>
