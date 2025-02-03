@@ -1,0 +1,66 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const TermsPage = () => {
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Conditions d'Utilisation</h1>
+
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="p-6 space-y-6">
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Utilisation du Service</h2>
+              <p className="text-gray-600 mb-4">
+                En utilisant Miss France Predictions, vous acceptez les présentes conditions d'utilisation.
+                Le service est fourni à titre gratuit et dans un but ludique et communautaire.
+              </p>
+              <ul className="list-disc pl-5 text-gray-600 space-y-2">
+                <li>Vous devez avoir plus de 13 ans pour utiliser ce service</li>
+                <li>Vous êtes responsable de la confidentialité de votre compte</li>
+                <li>Vos pronostics peuvent être rendus publics selon vos paramètres</li>
+                <li>L'utilisation abusive du service peut entraîner la suspension du compte</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Propriété Intellectuelle</h2>
+              <p className="text-gray-600">
+                Le nom "Miss France" est une marque déposée par Miss France SAS.
+                Les photos des candidates restent la propriété de leurs auteurs respectifs.
+                L'utilisation de ces éléments est strictement limitée au cadre des pronostics.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Limitation de Responsabilité</h2>
+              <p className="text-gray-600">
+                Miss France Predictions ne peut être tenu responsable des erreurs dans les informations fournies.
+                Le site peut être indisponible temporairement pour maintenance ou mises à jour.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Modification des Conditions</h2>
+              <p className="text-gray-600">
+                Nous nous réservons le droit de modifier ces conditions d'utilisation à tout moment.
+                Les utilisateurs seront informés des changements importants.
+              </p>
+            </section>
+          </div>
+        </div>
+
+        <div className="mt-8 text-center">
+          <Link 
+            to="/"
+            className="text-pink-500 hover:text-pink-600 font-medium"
+          >
+            Retour à l'accueil
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TermsPage;
