@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { db } from '../../config/firebase';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import MyPredictions from '../../components/dashboard/MyPredictions';
 
 const StatCard = ({ title, value }) => (
   <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition-shadow">
@@ -28,39 +29,51 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        console.log('Fetching groups for user:', user.uid);
-        
-        // Modifié pour correspondre à la structure réelle
-        const groupsQuery = query(
-          collection(db, 'groups'),
-          where('members', 'array-contains', {
-            userId: user.uid
-          })
+        // Récupérer les groupes de l'utilisateur
+        const groupsSnapshot = await getDocs(collection(db, 'groups'));
+        const userGroups = groupsSnapshot.docs
+          .filter(doc => doc.data().members.some(member => member.userId === user.uid));
+
+        // Pour chaque groupe, récupérer les prédictions
+        // Dans fetchGroups, modifier la partie qui récupère les prédictions
+        const groupsWithDetails = await Promise.all(userGroups.map(async (groupDoc) => {
+        const groupData = groupDoc.data();
+
+        // Ne récupérer que les prédictions de l'utilisateur
+        const predictionsQuery = query(
+          collection(db, 'predictions'),
+          where('groupId', '==', groupDoc.id),
+          where('userId', '==', user.uid)  // Ajout de cette condition
         );
-        
-        // On pourrait aussi faire une requête sur tous les groupes et filtrer
-        const querySnapshot = await getDocs(collection(db, 'groups'));
-        const userGroups = querySnapshot.docs
-          .filter(doc => doc.data().members.some(member => member.userId === user.uid))
-          .map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              ...data,
-              members: data.members,
-              completedPredictions: 0, // À implémenter avec predictions
-              userHasPredicted: false // À implémenter avec predictions
-            };
-          });
-        
-        setGroups(userGroups);
+        const predictionsSnapshot = await getDocs(predictionsQuery);
+        const userPrediction = predictionsSnapshot.empty ? null : predictionsSnapshot.docs[0].data();
+
+        // Calculer les statistiques uniquement sur la prédiction de l'utilisateur
+        const total = userPrediction ? 
+          (userPrediction.top3?.length || 0) + 
+          (userPrediction.top5?.length || 0) + 
+          (userPrediction.qualified?.length || 0) : 0;
+
+        return {
+          id: groupDoc.id,
+          ...groupData,
+          userPrediction,
+          predictionProgress: Math.round((total / 15) * 100),
+          predictionStats: {
+            totalPredictions: 0,  // nombre de membres ayant fait des prédictions
+            completedPredictions: 0,  // nombre de prédictions complètes
+          }
+        };
+      }));
+
+        setGroups(groupsWithDetails);
       } catch (error) {
         console.error('Error fetching groups:', error);
       } finally {
         setLoading(false);
       }
     };
-  
+
     if (user) {
       fetchGroups();
     }
@@ -76,10 +89,8 @@ const DashboardPage = () => {
     .filter(group => {
       switch (filter) {
         case 'owned':
-          // Modification ici : vérifier admin au lieu de ownerId
           return group.admin === user.uid;
         case 'member':
-          // Et ici : vérifier que l'utilisateur n'est pas admin
           return group.admin !== user.uid;
         default:
           return true;
@@ -96,7 +107,7 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-4 border-b border-gray-200">
           <div>
@@ -128,19 +139,24 @@ const DashboardPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <StatCard 
             title="Vos groupes" 
-            value={groups.length} 
+            value={groups.length}
           />
           <StatCard 
             title="Pronostics réalisés" 
-            value={`${groups.filter(g => g.userHasPredicted).length}/${groups.length}`} 
+            value={`${groups.filter(g => g.userPrediction && g.predictionProgress === 100).length}/${groups.length}`}
           />
           <StatCard 
             title="Meilleur score" 
             value={groups.reduce((max, group) => {
-              const userScore = group.predictions?.find(p => p.userId === user.uid)?.score || 0;
-              return Math.max(max, userScore);
-            }, 0)} 
+              const score = group.userPrediction?.score || 0;
+              return Math.max(max, score);
+            }, 0)}
           />
+        </div>
+
+        {/* Section Mes Pronostics */}
+        <div className="mb-8">
+          <MyPredictions groups={groups} />
         </div>
 
         {/* Search & Filters */}
@@ -167,7 +183,7 @@ const DashboardPage = () => {
           </select>
         </div>
 
-        {/* Groups */}
+        {/* Liste des groupes */}
         {filteredGroups.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm p-8 text-center">
             {searchTerm || filter !== 'all' ? (
@@ -208,7 +224,7 @@ const DashboardPage = () => {
                         {group.members?.length || 0} membres
                       </p>
                     </div>
-                    {group.ownerId === user.uid && (
+                    {group.admin === user.uid && (
                       <span className="px-3 py-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-medium rounded-full">
                         Admin
                       </span>
@@ -223,7 +239,7 @@ const DashboardPage = () => {
                     <div className="flex justify-between text-sm text-gray-500 mb-4">
                       <span>Pronostics</span>
                       <span>
-                        {`${group.completedPredictions}/${group.members.length} complétés`}
+                        {`${group.predictionStats?.completedPredictions || 0}/${group.members?.length || 0} complétés`}
                       </span>
                     </div>
                   </div>

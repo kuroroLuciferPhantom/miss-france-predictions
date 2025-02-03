@@ -100,6 +100,27 @@ const RankingPage = () => {
         where('groupId', '==', groupId)
       );
       const querySnapshot = await getDocs(q);
+
+      // Mettre à jour les stats du groupe
+      const groupRef = doc(db, 'groups', groupId);
+      const groupDoc = await getDoc(groupRef);
+      const groupData = groupDoc.data();
+      
+      // Si c'est une nouvelle prédiction
+      if (!existingPrediction) {
+        await updateDoc(groupRef, {
+          'predictionStats.totalPredictions': (groupData.predictionStats?.totalPredictions || 0) + 1,
+          'predictionStats.completedPredictions': isComplete 
+            ? (groupData.predictionStats?.completedPredictions || 0) + 1 
+            : (groupData.predictionStats?.completedPredictions || 0)
+        });
+      } 
+      // Si c'est une mise à jour et que la prédiction devient complète
+      else if (isComplete && !existingPrediction.isComplete) {
+        await updateDoc(groupRef, {
+          'predictionStats.completedPredictions': (groupData.predictionStats?.completedPredictions || 0) + 1
+        });
+      }
   
       if (!querySnapshot.empty) {
         await updateDoc(doc(db, 'predictions', querySnapshot.docs[0].id), predictionData);
