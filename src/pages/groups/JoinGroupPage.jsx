@@ -12,7 +12,7 @@ const JoinGroupPage = () => {
   const { user } = useAuthContext();
 
   useEffect(() => {
-    document.title = "Rejoindre un groupe - Miss France Predictions";
+    document.title = "Rejoindre un groupe - Miss Pronos";
   }, []);
 
   const handleSubmit = async (e) => {

@@ -47,7 +47,7 @@ const Footer = () => {
           {/* Copyright */}
           <div className="mt-8 md:mt-0">
             <p className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} Miss France Predictions. Tous droits réservés.
+              &copy; {new Date().getFullYear()} Miss Pronos. Tous droits réservés.
             </p>
           </div>
         </div>

@@ -13,7 +13,7 @@ const Header = () => {
           {/* Logo / Titre */}
           <Link to="/" className="flex items-center">
             <span className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
-              Miss France Predictions
+              Miss Pronos
             </span>
           </Link>
 
