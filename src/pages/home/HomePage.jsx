@@ -1,50 +1,5 @@
 import React, { useState } from 'react';
 
-const Header = () => {
-  const [isLoggedIn] = useState(false);
-
-  return (
-    <header className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <div className="bg-pink-500 text-white p-2 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </div>
-            <h1 className="ml-3 text-2xl font-bold text-gray-900">Miss'Pronos</h1>
-          </div>
-
-          <nav>
-            {isLoggedIn ? (
-              <div className="flex space-x-4">
-                <a href="/groups" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md">
-                  Mes Groupes
-                </a>
-                <a href="/predictions" className="text-gray-700 hover:text-pink-500 px-3 py-2 rounded-md">
-                  Mes Pronostics
-                </a>
-                <button className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-md">
-                  Déconnexion
-                </button>
-              </div>
-            ) : (
-              <div className="flex space-x-4">
-                <a href="/login" className="text-pink-500 hover:text-pink-600 px-4 py-2 rounded-md">
-                  Connexion
-                </a>
-                <a href="/signup" className="bg-pink-500 text-white hover:bg-pink-600 px-4 py-2 rounded-md">
-                  Inscription
-                </a>
-              </div>
-            )}
-          </nav>
-        </div>
-      </div>
-    </header>
-  );
-};
 
 const Countdown = () => {
   const electionDate = new Date('2025-12-14T21:00:00');
@@ -174,8 +129,6 @@ const CallToAction = () => (
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-      
       <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
