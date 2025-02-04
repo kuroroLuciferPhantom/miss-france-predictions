@@ -3,23 +3,64 @@ import PhotoPreviewModal from './PhotoPreviewModal';
 import instagramIcon from '../assets/images/icons/instagram.png';
 import tiktokIcon from '../assets/images/icons/tiktok.png';
 
-const MissCard = ({ 
-  miss, 
-  onSelect = () => {}, 
-  isSelected = false, 
-  selectionType, 
-  showRemoveButton = false, 
-  onRemove = () => {}, 
-  rank 
-}) => {
+const MissCard = ({ miss, compact, onSelect, isSelected, selectionType, showRemoveButton, onRemove, rank }) => {
   const [showPhotoPreview, setShowPhotoPreview] = useState(false);
 
-  // Remettre la constante borderColor qui manquait
   const borderColor = {
     top3: 'ring-pink-500',
     top5: 'ring-purple-500',
     qualified: 'ring-blue-500'
   };
+
+  if (compact) {
+    return (
+      <div 
+        className={`relative bg-white rounded-lg overflow-hidden shadow-sm ${
+          isSelected ? `ring-2 ${borderColor[selectionType] || ''}` : ''
+        }`}
+      >
+        <div className="relative h-48">
+          <img 
+            src={miss.photo} 
+            alt={`Miss ${miss.region}`} 
+            className="w-full h-full object-contain bg-gray-50" 
+          />
+          {/* Preview button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPhotoPreview(true);
+            }}
+            className="absolute top-2 right-2 bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70"
+            title="Voir la photo"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+            </svg>
+          </button>
+        </div>
+        <div className="p-2 border-t">
+          <div className="text-sm font-medium truncate">{miss.name}</div>
+          <div className="text-xs text-gray-500 truncate">Miss {miss.region}</div>
+        </div>
+        {showRemoveButton && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+            className="absolute top-2 left-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 z-10 shadow-lg"
+          >
+            ×
+          </button>
+        )}
+        {/* Modal d'aperçu */}
+        <PhotoPreviewModal
+          isOpen={showPhotoPreview}
+          onClose={() => setShowPhotoPreview(false)}
+          photo={miss.photo}
+          name={`Miss ${miss.region} - ${miss.name}`}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="relative">
@@ -36,7 +77,7 @@ const MissCard = ({
             alt={`Miss ${miss.region}`} 
             className="w-full h-64 object-contain bg-gray-50" 
           />
-          {/* Bouton aperçu qui apparaît au hover - ajout des classes pour mobile */}
+          {/* Bouton aperçu qui apparaît au hover */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -44,7 +85,7 @@ const MissCard = ({
             }}
             className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full 
                      md:opacity-0 md:group-hover:opacity-100 transition-opacity
-                     opacity-100 sm:opacity-100" // Toujours visible sur mobile
+                     opacity-100 sm:opacity-100"
             title="Voir la photo"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

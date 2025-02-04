@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import MissCard from '../components/MissCard';
 import GameRules from '../components/GameRules';
-import PreviewModal from '../components/PreviewModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import PointsSystem from '../components/PointsSystem';
 import MissGalleryModal from '../components/MissGalleryModal';
@@ -24,7 +23,6 @@ const RankingPage = () => {
   const [availableMisses, setAvailableMisses] = useState(missData);
   const [selectionStep, setSelectionStep] = useState('top3');
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('selection');
@@ -242,227 +240,153 @@ const RankingPage = () => {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div>
-          {/* Navigation mobile */}
-          <div className="md:hidden mb-4">
-            <div className="bg-white rounded-lg p-2 flex space-x-2">
-              <button
-                onClick={() => setActiveTab('selection')}
-                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors
-                  ${activeTab === 'selection' 
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white' 
-                    : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                Sélectionner
-              </button>
-              <button
-                onClick={() => setActiveTab('selections')}
-                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors relative
-                  ${activeTab === 'selections' 
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white' 
-                    : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                Vos sélections
-                <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {top3.length + top5.length + qualified.length}
-                </span>
-              </button>
-            </div>
+        {/* Onglets */}
+        <div className="bg-white rounded-lg p-2 mb-6">
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setActiveTab('selection')}
+              className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-colors
+                ${activeTab === 'selection' 
+                  ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white' 
+                  : 'text-gray-500 hover:text-gray-700'
+                }`}
+            >
+              Sélectionner
+            </button>
+            <button
+              onClick={() => setActiveTab('selections')}
+              className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-colors relative
+                ${activeTab === 'selections' 
+                  ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white' 
+                  : 'text-gray-500 hover:text-gray-700'
+                }`}
+            >
+              Vos sélections
+              <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {top3.length + top5.length + qualified.length}
+              </span>
+            </button>
           </div>
+        </div>
 
-          {/* Contenu principal - Desktop et Mobile */}
-          <div className="block md:grid md:grid-cols-12 md:gap-8">
-            {/* Colonne gauche - Selection des candidates */}
-            <div className={`md:col-span-8 ${activeTab === 'selections' ? 'hidden md:block' : 'block'}`}>
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
-                  {/* Header avec titre et bouton galerie */}
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-medium text-gray-900">
-                      Candidates disponibles
-                      <span className="ml-2 text-sm text-gray-500">
-                        ({filteredAvailableMisses.length})
-                      </span>
-                    </h2>
-                    <button
-                      onClick={() => setIsGalleryOpen(true)}
-                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      Voir toutes les Miss
-                    </button>
-                  </div>
-
-                  {/* Barre de recherche */}
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Rechercher une Miss par nom ou région..."
-                      className="w-full px-4 py-2 pl-10 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Grille des candidates avec scroll */}
-                <div className="p-4 overflow-y-auto max-h-[calc(100vh-300px)]">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {filteredAvailableMisses.length > 0 ? 
-                      filteredAvailableMisses.map(miss => (
-                        <MissCard
-                          key={miss.id}
-                          miss={miss}
-                          onSelect={() => handleMissSelect(miss)}
-                          isSelected={false}
-                          onRemove={() => {}}
-                        />
-                      )) : (
-                        <div className="col-span-3 text-center py-8 text-gray-500">
-                          Aucune candidate ne correspond à votre recherche
-                        </div>
-                      )
-                    }
-                  </div>
-                </div>
-              </div>
-              {/* Système de points */}
-              <div className="mt-8">
-                <PointsSystem />
-              </div>
-
-              {/* Messages de succès/erreur */}
-              {(error || successMessage) && (
-                <div className="mb-8 mt-8">
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-                      {error}
-                    </div>
-                  )}
-                  {successMessage && (
-                    <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg">
-                      {successMessage}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Actions footer */}
-              <div className="mt-8 flex justify-end space-x-4">
-                <button
-                  onClick={() => setIsPreviewOpen(true)}
-                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50"
-                >
-                  Aperçu
-                </button>
-                <button
-                  onClick={() => setIsConfirmationOpen(true)}
-                  disabled={isSaving}
-                  className={`px-6 py-2 rounded-lg shadow-sm flex items-center justify-center ${
-                    isSaving
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600'
-                  }`}
-                >
-                  {isSaving ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Sauvegarde en cours...
-                    </>
-                  ) : (
-                    'Valider mes pronostics'
-                  )}
-                </button>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <label className="inline-flex relative items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={isPublic}
-                        onChange={(e) => setIsPublic(e.target.checked)}
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-500 peer-checked:to-purple-500"></div>
-                      <span className="ml-3 text-sm text-gray-600">
-                        Rendre mes pronostics publics
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Colonne droite - Sélections (4/12 = ~1/3) */}
-            <div className={`md:col-span-4 space-y-6 ${activeTab === 'selection' ? 'hidden md:block' : 'block'}`}>
-              {/* Règles du jeu */}
-              <GameRules />
-              {/* Top 5 */}
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-4 border-b border-gray-200">
-                  <h2 className="text-lg font-medium text-gray-900">Votre Top 5</h2>
-                </div>
-                <div className="p-4 space-y-4">
-                  {titles.map((title, index) => (
-                    <div key={title} className="relative">
-                      <h3 className="text-sm font-medium text-gray-700 mb-2">{title}</h3>
-                      {index < 3 ? (
-                        top3[index] ? (
-                          <MissCard
-                            miss={top3[index]}
-                            isSelected
-                            selectionType="top3"
-                            showRemoveButton
-                            onRemove={() => handleRemove(top3[index], 'top3')}
-                            rank={title}
-                          />
-                        ) : (
-                          <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 flex justify-center items-center text-gray-400 h-24">
-                            Sélectionnez une Miss
-                          </div>
-                        )
-                      ) : (
-                        top5[index - 3] ? (
-                          <MissCard
-                            miss={top5[index - 3]}
-                            isSelected
-                            selectionType="top5"
-                            showRemoveButton
-                            onRemove={() => handleRemove(top5[index - 3], 'top5')}
-                            rank={title}
-                          />
-                        ) : (
-                          <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 flex justify-center items-center text-gray-400 h-24">
-                            Sélectionnez une Miss
-                          </div>
-                        )
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Qualifiées */}
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-4 border-b border-gray-200">
+        {/* Contenu basé sur l'onglet actif */}
+        {activeTab === 'selection' ? (
+          <>
+            {/* Sélection des candidates */}
+            <div className="bg-white rounded-lg shadow-sm mb-6">
+              <div className="p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+                <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-medium text-gray-900">
-                    Autres Miss qualifiées
+                    Candidates disponibles
                     <span className="ml-2 text-sm text-gray-500">
-                      ({qualified.length}/10)
+                      ({filteredAvailableMisses.length})
                     </span>
                   </h2>
+                  <button
+                    onClick={() => setIsGalleryOpen(true)}
+                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Voir toutes les Miss
+                  </button>
                 </div>
-                <div className="p-4">
-                  <div className="space-y-2">
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Rechercher une Miss par nom ou région..."
+                    className="w-full px-4 py-2 pl-10 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 overflow-y-auto max-h-[calc(100vh-500px)]">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {filteredAvailableMisses.length > 0 ? 
+                    filteredAvailableMisses.map(miss => (
+                      <MissCard
+                        key={miss.id}
+                        miss={miss}
+                        onSelect={() => handleMissSelect(miss)}
+                        isSelected={false}
+                        onRemove={() => {}}
+                      />
+                    )) : (
+                      <div className="col-span-full text-center py-8 text-gray-500">
+                        Aucune candidate ne correspond à votre recherche
+                      </div>
+                    )
+                  }
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Sélections */}
+            <div className="bg-white rounded-lg shadow-sm mb-6">
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="text-lg font-medium text-gray-900">Vos Sélections</h2>
+              </div>
+              
+              <div className="p-4 space-y-6">
+                {/* Top 5 */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Top 5</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {titles.map((title, index) => (
+                      <div key={title} className="relative">
+                        <div className="text-xs text-gray-500 mb-1">{title}</div>
+                        {index < 3 ? (
+                          top3[index] ? (
+                            <MissCard
+                              miss={top3[index]}
+                              isSelected
+                              selectionType="top3"
+                              showRemoveButton
+                              onRemove={() => handleRemove(top3[index], 'top3')}
+                              rank={title}
+                              compact
+                            />
+                          ) : (
+                            <div className="border-2 border-dashed border-gray-200 rounded-lg p-2 flex justify-center items-center text-gray-400 h-16 text-xs">
+                              À sélectionner
+                            </div>
+                          )
+                        ) : (
+                          top5[index - 3] ? (
+                            <MissCard
+                              miss={top5[index - 3]}
+                              isSelected
+                              selectionType="top5"
+                              showRemoveButton
+                              onRemove={() => handleRemove(top5[index - 3], 'top5')}
+                              rank={title}
+                              compact
+                            />
+                          ) : (
+                            <div className="border-2 border-dashed border-gray-200 rounded-lg p-2 flex justify-center items-center text-gray-400 h-16 text-xs">
+                              À sélectionner
+                            </div>
+                          )
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Qualifiées */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">
+                    Autres Miss qualifiées ({qualified.length}/10)
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                     {qualified.map(miss => (
                       <MissCard
                         key={miss.id}
@@ -471,41 +395,75 @@ const RankingPage = () => {
                         selectionType="qualified"
                         showRemoveButton
                         onRemove={() => handleRemove(miss, 'qualified')}
+                        compact
                       />
                     ))}
                     {qualified.length < 10 && (
-                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 flex justify-center items-center text-gray-400 h-24">
-                        Sélectionnez encore {10 - qualified.length} Miss
+                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-2 flex justify-center items-center text-gray-400 h-16 text-xs">
+                        + {10 - qualified.length} à sélectionner
                       </div>
                     )}
                   </div>
                 </div>
               </div>
             </div>
+          </>
+        )}
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row justify-between items-center bg-white rounded-lg shadow-sm p-4 mb-6 space-y-3 sm:space-y-0">
+          {/* Switch Public/Privé */}
+          <div className="flex items-center">
+            <label className="inline-flex relative items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={isPublic}
+                onChange={(e) => setIsPublic(e.target.checked)}
+              />
+              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 
+                              rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white 
+                              after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white 
+                              after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all 
+                              peer-checked:bg-gradient-to-r peer-checked:from-pink-500 peer-checked:to-purple-500">
+              </div>
+              <span className="ml-2 text-sm text-gray-600">
+                Rendre mes pronostics publics
+              </span>
+            </label>
           </div>
-        
 
-          {/* Modals */}
-          <PreviewModal
-            isOpen={isPreviewOpen}
-            onClose={() => setIsPreviewOpen(false)}
-            selections={{
-              top5: [...top3, ...top5],
-              qualified
-            }}
-          />
-          <ConfirmationModal
-            isOpen={isConfirmationOpen}
-            onClose={() => setIsConfirmationOpen(false)}
-            onConfirm={handleSubmit}
-          />
-
-          <MissGalleryModal
-            isOpen={isGalleryOpen}
-            onClose={() => setIsGalleryOpen(false)}
-            misses={getAllMisses()}
-          />
+          {/* Bouton Valider */}
+          <div className="flex space-x-4">
+            <button
+              onClick={() => setIsConfirmationOpen(true)}
+              disabled={isSaving}
+              className={`px-4 py-1.5 sm:px-6 sm:py-2 rounded-lg flex items-center justify-center text-sm sm:text-base 
+                ${isSaving 
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                  : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600'}
+              `}
+            >
+              {isSaving ? 'Sauvegarde...' : 'Valider mes pronostics'}
+            </button>
+          </div>
         </div>
+
+
+        {/* Footer section avec GameRules et PointsSystem toujours visibles */}
+        <GameRules />
+        <PointsSystem />
+          
+        <ConfirmationModal
+          isOpen={isConfirmationOpen}
+          onClose={() => setIsConfirmationOpen(false)}
+          onConfirm={handleSubmit}
+        />
+        <MissGalleryModal
+          isOpen={isGalleryOpen}
+          onClose={() => setIsGalleryOpen(false)}
+          misses={getAllMisses()}
+        />
       </div>
     </div>
   );
