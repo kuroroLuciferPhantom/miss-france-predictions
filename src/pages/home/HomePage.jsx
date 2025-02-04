@@ -1,5 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../../contexts/AuthContext';
+import { motion } from 'framer-motion';
 
+const scrollVariants = {
+  hidden: { 
+    opacity: 0,
+    y: 50
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut"
+    }
+  }
+};
 
 const Countdown = () => {
   const electionDate = new Date('2025-12-14T21:00:00');
@@ -22,6 +39,13 @@ const Countdown = () => {
 };
 
 const QuickRules = () => (
+  <motion.div 
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true }}
+    variants={scrollVariants}
+    className="bg-white rounded-lg shadow p-6"
+  >
   <div className="bg-white rounded-lg shadow p-6">
     <h3 className="text-xl font-bold mb-4">Comment jouer ?</h3>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -39,9 +63,17 @@ const QuickRules = () => (
       </div>
     </div>
   </div>
+  </motion.div>
 );
 
 const HowItWorks = () => (
+  <motion.div 
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true }}
+    variants={scrollVariants}
+    className="py-12"
+  >
   <div className="py-12">
     <h2 className="text-3xl font-bold text-center mb-12">Comment ça marche ?</h2>
     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -86,9 +118,17 @@ const HowItWorks = () => (
       </div>
     </div>
   </div>
+  </motion.div>
 );
 
 const Statistics = () => (
+  <motion.div 
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true }}
+    variants={scrollVariants}
+    className="bg-pink-500 text-white py-12 rounded-lg"
+  >
   <div className="bg-pink-500 text-white py-12 rounded-lg">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
@@ -107,26 +147,73 @@ const Statistics = () => (
       </div>
     </div>
   </div>
+  </motion.div>
 );
 
-const CallToAction = () => (
+const CallToAction = ({ onCreateGroup, onJoinGroup }) => (
+  <motion.div 
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true }}
+    variants={scrollVariants}
+    className="bg-gradient-to-r from-pink-500 to-purple-500 text-white py-16 rounded-lg"
+  >
   <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white py-16 rounded-lg">
     <div className="max-w-3xl mx-auto text-center px-4">
       <h2 className="text-3xl font-bold mb-6">Prêt à faire vos pronostics ?</h2>
-      <p className="text-lg mb-8">Rejoignez la communauté et défiez vos amis pour devenir le meilleur pronostiqueur Miss France 2025 !</p>
+      <p className="text-lg mb-8">
+        Rejoignez la communauté et défiez vos amis pour devenir le meilleur pronostiqueur Miss France 2025 !
+      </p>
       <div className="flex justify-center space-x-4">
-        <button className="bg-white text-pink-500 px-6 py-3 rounded-lg font-semibold hover:bg-pink-50 transition-colors">
+        <button 
+          onClick={onCreateGroup}
+          className="bg-white text-pink-500 px-6 py-3 rounded-lg font-semibold hover:bg-pink-50 transition-colors"
+        >
           Créer un groupe
         </button>
-        <button className="bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700 transition-colors">
+        <button 
+          onClick={onJoinGroup}
+          className="bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700 transition-colors"
+        >
           Rejoindre un groupe
         </button>
       </div>
     </div>
   </div>
+  </motion.div>
 );
 
 const HomePage = () => {
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuthContext();
+
+  // Navigation sécurisée - vérifie l'authentification avant d'accéder aux routes protégées
+  const handleSecureNavigation = (path) => {
+    if (!isAuthenticated) {
+      // Stocker la destination souhaitée pour la redirection post-login
+      sessionStorage.setItem('redirectAfterLogin', path);
+      navigate('/login');
+    } else if (!user?.hasCompletedOnboarding) {
+      navigate('/onboarding');
+    } else {
+      navigate(path);
+    }
+  };
+
+  const handleCreateGroup = () => handleSecureNavigation('/group/create');
+  const handleJoinGroup = () => handleSecureNavigation('/group/join');
+  const handleStartAdventure = () => {
+    if (isAuthenticated) {
+      if (!user?.hasCompletedOnboarding) {
+        navigate('/onboarding');
+      } else {
+        navigate('/dashboard');
+      }
+    } else {
+      navigate('/login');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -143,8 +230,11 @@ const HomePage = () => {
           </div>
 
           <div className="flex justify-center">
-            <button className="bg-pink-500 text-white text-lg font-semibold px-8 py-4 rounded-lg hover:bg-pink-600 transition-colors">
-              Commencer l'aventure
+            <button 
+              onClick={handleStartAdventure}
+              className="bg-pink-500 text-white text-lg font-semibold px-8 py-4 rounded-lg hover:bg-pink-600 transition-colors"
+            >
+              {isAuthenticated ? "Accéder au dashboard" : "Commencer l'aventure"}
             </button>
           </div>
         </div>
@@ -162,7 +252,10 @@ const HomePage = () => {
         </div>
 
         <div className="mt-16">
-          <CallToAction />
+          <CallToAction 
+            onCreateGroup={handleCreateGroup}
+            onJoinGroup={handleJoinGroup}
+          />
         </div>
       </main>
     </div>

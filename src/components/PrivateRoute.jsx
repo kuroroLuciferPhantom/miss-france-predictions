@@ -1,13 +1,20 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { auth } from '../lib/firebase';
+onsole.log("🔐 PrivateRoute - test");
+export const PrivateRoute = ({ children }) => {
+  const { user, loading } = useAuthContext();
 
-const PrivateRoute = ({ children }) => {
-  if (!auth.currentUser) {
-    return <Navigate to="/login" replace />;
+  console.log("🔐 Vérification PrivateRoute - User:", user);
+  console.log("⏳ Loading status:", loading);
+
+  if (loading) {
+    console.log("⏳ Chargement en cours...");
+    return <div>Chargement...</div>;
   }
 
+  if (!user) {
+    console.log("🚫 Redirection vers /login");
+    return <Navigate to="/login" />;
+  }
+
+  console.log("✅ Accès autorisé !");
   return children;
 };
-
-export default PrivateRoute;

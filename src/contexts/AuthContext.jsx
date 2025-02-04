@@ -90,3 +90,13 @@ export const deleteUserAccount = async () => {
     throw error;
   }
 };
+
+const signOut = async () => {
+  try {
+    await auth.signOut();
+    // Optionnel : redirection vers login
+  } catch (error) {
+    console.error('Erreur lors de la déconnexion:', error);
+    throw error;
+  }
+};

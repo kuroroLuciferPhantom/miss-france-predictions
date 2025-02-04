@@ -6,7 +6,7 @@ import { useAuthContext } from '../../contexts/AuthContext';
 const ProfileDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const { user, signOut } = useAuthContext();
+  const { user, logout } = useAuthContext();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,8 +22,8 @@ const ProfileDropdown = () => {
 
   const handleSignOut = async () => {
     try {
-        await signOut();
-        navigate('/login');
+      await logout();  // on utilise la fonction logout
+      navigate('/login');
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
     }

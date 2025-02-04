@@ -2,9 +2,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Settings, LogOut } from 'lucide-react';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 const ProfileDropdown = ({ user }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, signOut } = useAuthContext(); // recupere logout
+  const navigate = useNavigate();
+
 
   return (
     <div className="relative">

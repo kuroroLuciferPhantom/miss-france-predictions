@@ -1,4 +1,4 @@
-# Miss France Predictions 🎭👑
+# Miss'Pronos 🎭👑
 
 Application web pour pronostiquer l'élection Miss France et comparer ses résultats avec ses amis.
 

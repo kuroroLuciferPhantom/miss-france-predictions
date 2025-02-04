@@ -17,19 +17,29 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true); // 🔹 Évite une redirection prématurée
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("🔄 Mise à jour de l'utilisateur Firebase:", user); // 🔍 Debugging
+
       if (user) {
-        // Récupérer les données utilisateur supplémentaires depuis Firestore
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        setUser({
-          uid: user.uid,
-          email: user.email,
-          ...userDoc.data()
-        });
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          setUser({
+            uid: user.uid,
+            email: user.email,
+            ...(userDoc.exists() ? userDoc.data() : {}) // 🔹 Évite les erreurs si l'user n'a pas de données Firestore
+          });
+        } catch (error) {
+          console.error("❌ Erreur lors de la récupération des données Firestore:", error);
+          setUser(null);
+        }
       } else {
         setUser(null);
       }
-      setLoading(false);
+
+      setLoading(false); // 🔹 Fin du chargement après traitement
     });
 
     return () => unsubscribe();
@@ -39,7 +49,6 @@ export const useAuth = () => {
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Créer le profil utilisateur dans Firestore
       await setDoc(doc(db, 'users', user.uid), {
         username,
         email,
@@ -65,12 +74,11 @@ export const useAuth = () => {
     try {
       const { user } = await signInWithPopup(auth, googleProvider);
       
-      // Vérifier si l'utilisateur existe déjà dans Firestore
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
       
       if (!userDoc.exists()) {
-        // Créer le profil utilisateur s'il n'existe pas
-        await setDoc(doc(db, 'users', user.uid), {
+        await setDoc(userDocRef, {
           username: user.displayName || user.email.split('@')[0],
           email: user.email,
           createdAt: new Date().toISOString()

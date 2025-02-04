@@ -16,11 +16,15 @@ import LegalPage from './pages/legal/LegalPage';
 import TermsPage from './pages/legal/TermsPage';
 import PolitiqueConfidentialitePage from './pages/legal/PolitiqueConfidentialitePage';
 import ProfilePage from './pages/profile/ProfilePage';
+import PageTransition from './components/transitions/PageTransition';
+import { AnimatePresence } from 'framer-motion';
+
 
 function App() {
   return (
     <Layout>
       <AuthProvider>
+        <AnimatePresence mode="wait">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/profile" element={<ProfilePage />} />
@@ -28,22 +32,30 @@ function App() {
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/dashboard" element={
             <PrivateRoute>
-              <DashboardPage />
+              <PageTransition>
+                <DashboardPage />
+              </PageTransition>
             </PrivateRoute>
           } />
           <Route path="/onboarding" element={
             <PrivateRoute>
-              <OnboardingPage />
+              <PageTransition>
+                <OnboardingPage />
+              </PageTransition>
             </PrivateRoute>
           } />
           <Route path="/group/create" element={
             <PrivateRoute>
-              <CreateGroupPage />
+              <PageTransition>
+                <CreateGroupPage />
+              </PageTransition>
             </PrivateRoute>
           } />
           <Route path="/group/join" element={
             <PrivateRoute>
-              <JoinGroupPage />
+              <PageTransition>
+                <JoinGroupPage />
+              </PageTransition>
             </PrivateRoute>
           } />
           <Route path="/group/:groupId" element={
@@ -53,7 +65,9 @@ function App() {
           } />
           <Route path="/group/:groupId/prediction" element={
             <PrivateRoute>
-              <RankingPage />
+              <PageTransition>
+                <RankingPage />
+              </PageTransition>
             </PrivateRoute>
           } />
           <Route path="/mentions-legales" element={<LegalPage />} />
@@ -61,6 +75,7 @@ function App() {
           <Route path="/confidentialite" element={<PolitiqueConfidentialitePage />} />
           <Route path="/contact" element={<ContactPage />} />
         </Routes>
+        </AnimatePresence>
       </AuthProvider>
     </Layout>
   );
