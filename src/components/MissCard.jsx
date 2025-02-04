@@ -3,7 +3,15 @@ import PhotoPreviewModal from './PhotoPreviewModal';
 import instagramIcon from '../assets/images/icons/instagram.png';
 import tiktokIcon from '../assets/images/icons/tiktok.png';
 
-const MissCard = ({ miss, onSelect, isSelected, selectionType, showRemoveButton, onRemove, rank }) => {
+const MissCard = ({ 
+  miss, 
+  onSelect = () => {}, 
+  isSelected = false, 
+  selectionType, 
+  showRemoveButton = false, 
+  onRemove = () => {}, 
+  rank 
+}) => {
   const [showPhotoPreview, setShowPhotoPreview] = useState(false);
 
   // Remettre la constante borderColor qui manquait

@@ -280,7 +280,7 @@ const DashboardPage = () => {
           
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
             <button
-              onClick={() => navigate('/predictions/edit')}
+              onClick={() => navigate('/ranking')}
               className="px-4 py-2 border-2 border-pink-500 text-pink-500 rounded-lg hover:bg-pink-50 transition-colors font-medium"
             >
               {prediction ? 'Modifier mes pronostics' : 'Faire mes pronostics'}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import MissCard from '../components/MissCard';
 import GameRules from '../components/GameRules';
@@ -11,11 +11,13 @@ import { missData, titles } from '../data/missData';
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuthContext } from '../contexts/AuthContext';
+import { showToast } from '../components/ui/Toast';
 
 
 const RankingPage = () => {
   const { user } = useAuthContext();
-  const { groupId } = useParams();
+  const navigate = useNavigate();
+  const [predictionId, setPredictionId] = useState(null);
   const [top3, setTop3] = useState([]);
   const [top5, setTop5] = useState([]);
   const [qualified, setQualified] = useState([]);
@@ -30,13 +32,12 @@ const RankingPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
-  const navigate = useNavigate();
 
   useEffect(() => {
-    if (user && groupId) {
+    if (user) {
       loadExistingPredictions();
     }
-  }, [user, groupId]);
+  }, [user]);
 
   const handleMissSelect = (miss) => {
     if (selectionStep === 'top3' && top3.length < 3) {
@@ -68,22 +69,9 @@ const RankingPage = () => {
 
   const handleSubmit = async () => {
     setIsSaving(true);
-    setError(null);
     try {
-      // Vérifier si une prédiction existe déjà
-      const predictionsRef = collection(db, 'predictions');
-      const q = query(
-        predictionsRef,
-        where('userId', '==', user.uid),
-        where('groupId', '==', groupId)
-      );
-      const querySnapshot = await getDocs(q);
-      const existingPrediction = querySnapshot.empty ? null : querySnapshot.docs[0];
-  
-      // Création de l'objet prédiction
       const predictionData = {
         userId: user.uid,
-        groupId,
         top3: top3.map(miss => ({
           id: miss.id,
           name: miss.name,
@@ -100,49 +88,30 @@ const RankingPage = () => {
           region: miss.region
         })),
         lastUpdated: new Date().toISOString(),
-        isPublic: isPublic,
+        isPublic,
         isComplete: top3.length === 3 && top5.length === 2 && qualified.length === 10
       };
-  
-      if (existingPrediction) {
-        // Update existant
-        await updateDoc(doc(db, 'predictions', existingPrediction.id), predictionData);
-        setSuccessMessage('Vos pronostics ont été mis à jour !');
+
+      if (predictionId) {
+        // Update
+        await updateDoc(doc(db, 'predictions', predictionId), predictionData);
+        showToast.success('Vos pronostics ont été mis à jour !');
       } else {
-        // Nouvelle prédiction
-        await setDoc(doc(collection(db, 'predictions')), predictionData);
-        setSuccessMessage('Vos pronostics ont été enregistrés !');
+        // Create
+        const docRef = doc(collection(db, 'predictions'));
+        await setDoc(docRef, predictionData);
+        setPredictionId(docRef.id);
+        showToast.success('Vos pronostics ont été enregistrés !');
       }
-  
-      // Mettre à jour les stats du groupe
-      const groupRef = doc(db, 'groups', groupId);
-      const groupDoc = await getDoc(groupRef);
-      const groupData = groupDoc.data();
-  
-      // Si c'est une nouvelle prédiction
-      if (!existingPrediction) {
-        await updateDoc(groupRef, {
-          'predictionStats.totalPredictions': (groupData.predictionStats?.totalPredictions || 0) + 1,
-          'predictionStats.completedPredictions': predictionData.isComplete 
-            ? (groupData.predictionStats?.completedPredictions || 0) + 1 
-            : (groupData.predictionStats?.completedPredictions || 0)
-        });
-      } 
-      // Si c'est une mise à jour et que la prédiction devient complète
-      else if (predictionData.isComplete && !existingPrediction.data().isComplete) {
-        await updateDoc(groupRef, {
-          'predictionStats.completedPredictions': (groupData.predictionStats?.completedPredictions || 0) + 1
-        });
-      }
-  
+
       setIsConfirmationOpen(false);
       setTimeout(() => {
-        navigate(`/group/${groupId}`);
-      }, 2000);
-  
+        navigate('/dashboard');
+      }, 1500);
+
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
-      setError('Une erreur est survenue lors de la sauvegarde');
+      showToast.error('Une erreur est survenue lors de la sauvegarde');
     } finally {
       setIsSaving(false);
     }
@@ -153,37 +122,39 @@ const RankingPage = () => {
       const predictionsRef = collection(db, 'predictions');
       const q = query(
         predictionsRef,
-        where('userId', '==', user.uid),
-        where('groupId', '==', groupId)
+        where('userId', '==', user.uid)
       );
       const querySnapshot = await getDocs(q);
-  
+
       if (!querySnapshot.empty) {
-        const predictionData = querySnapshot.docs[0].data();
-        
+        const prediction = querySnapshot.docs[0];
+        const predictionData = prediction.data();
+        setPredictionId(prediction.id);
+
         // Fonction pour récupérer les données complètes d'une miss
         const getFullMissData = (missBasic) => {
           const fullMiss = missData.find(m => m.id === missBasic.id);
-          return fullMiss || missBasic; // Fallback sur les données basiques si non trouvée
+          return fullMiss || missBasic;
         };
-  
-        // Mettre à jour les états avec les données enrichies
-        setTop3(predictionData.top3.map(getFullMissData));
-        setTop5(predictionData.top5.map(getFullMissData));
-        setQualified(predictionData.qualified.map(getFullMissData));
-        setIsPublic(predictionData.isPublic);
-        
+
+        setTop3(predictionData.top3?.map(getFullMissData) || []);
+        setTop5(predictionData.top5?.map(getFullMissData) || []);
+        setQualified(predictionData.qualified?.map(getFullMissData) || []);
+        setIsPublic(predictionData.isPublic || false);
+
         // Mettre à jour les Miss disponibles
         const selectedMissIds = [
-          ...predictionData.top3.map(m => m.id),
-          ...predictionData.top5.map(m => m.id),
-          ...predictionData.qualified.map(m => m.id)
+          ...(predictionData.top3 || []).map(m => m.id),
+          ...(predictionData.top5 || []).map(m => m.id),
+          ...(predictionData.qualified || []).map(m => m.id)
         ];
         setAvailableMisses(missData.filter(miss => !selectedMissIds.includes(miss.id)));
+
+        showToast.success('Vos pronostics ont été chargés !');
       }
     } catch (error) {
       console.error('Erreur lors du chargement des prédictions:', error);
-      setError('Impossible de charger vos prédictions existantes');
+      showToast.error('Impossible de charger vos pronostics existants');
     }
   };
 
@@ -236,18 +207,11 @@ const RankingPage = () => {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <Link 
-              to={`/group/${groupId}`}
+              to="/dashboard"
               className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
-              Retour au groupe
-            </Link>
-            
-            <Link 
-              to="/dashboard"
-              className="inline-flex items-center px-4 py-2 text-sm text-white bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg hover:from-pink-600 hover:to-purple-600 transition-colors"
-            >
-              Mon dashboard
+              Retour au dashboard
             </Link>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
@@ -350,20 +314,22 @@ const RankingPage = () => {
 
                 {/* Grille des candidates avec scroll */}
                 <div className="p-4 overflow-y-auto max-h-[calc(100vh-300px)]">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {filteredAvailableMisses.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {filteredAvailableMisses.length > 0 ? 
                       filteredAvailableMisses.map(miss => (
                         <MissCard
                           key={miss.id}
                           miss={miss}
                           onSelect={() => handleMissSelect(miss)}
+                          isSelected={false}
+                          onRemove={() => {}}
                         />
-                      ))
-                    ) : (
-                      <div className="col-span-3 text-center py-8 text-gray-500">
-                        Aucune candidate ne correspond à votre recherche
-                      </div>
-                    )}
+                      )) : (
+                        <div className="col-span-3 text-center py-8 text-gray-500">
+                          Aucune candidate ne correspond à votre recherche
+                        </div>
+                      )
+                    }
                   </div>
                 </div>
               </div>
