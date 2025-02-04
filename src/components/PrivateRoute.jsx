@@ -1,20 +1,18 @@
-onsole.log("🔐 PrivateRoute - test");
 export const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuthContext();
-
-  console.log("🔐 Vérification PrivateRoute - User:", user);
-  console.log("⏳ Loading status:", loading);
+  console.log("🔍 PrivateRoute - État:", { loading, userExists: !!user });
 
   if (loading) {
-    console.log("⏳ Chargement en cours...");
-    return <div>Chargement...</div>;
+    console.log("⏳ PrivateRoute - Chargement...");
+    return <LoadingScreen message="Vérification de l'authentification..." />;
   }
 
-  if (!user) {
-    console.log("🚫 Redirection vers /login");
+  // S'assurer que l'utilisateur est bien chargé avec les données Firestore
+  if (!user?.uid) {
+    console.log("🚫 PrivateRoute - Pas d'utilisateur ou données incomplètes");
     return <Navigate to="/login" />;
   }
 
-  console.log("✅ Accès autorisé !");
+  console.log("✅ PrivateRoute - Accès autorisé pour", user.email);
   return children;
 };

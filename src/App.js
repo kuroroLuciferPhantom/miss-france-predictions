@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider, PrivateRoute } from './contexts/AuthContext';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/home/HomePage';
@@ -21,11 +21,13 @@ import { AnimatePresence } from 'framer-motion';
 
 
 function App() {
+  const location = useLocation();
+
   return (
     <Layout>
       <AuthProvider>
         <AnimatePresence mode="wait">
-        <Routes>
+        <Routes location={location} key={location.pathname}>
           <Route path="/" element={<HomePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -60,10 +62,12 @@ function App() {
           } />
           <Route path="/group/:groupId" element={
             <PrivateRoute>
-              <GroupDetailPage />
+              <PageTransition>
+                <GroupDetailPage />
+              </PageTransition>
             </PrivateRoute>
           } />
-          <Route path="/group/:groupId/prediction" element={
+          <Route path="/ranking" element={
             <PrivateRoute>
               <PageTransition>
                 <RankingPage />

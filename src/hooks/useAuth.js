@@ -1,6 +1,6 @@
+//src/hooks/useAuth.js
 import { useState, useEffect } from 'react';
 import { 
-  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
@@ -9,112 +9,115 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
-
-const googleProvider = new GoogleAuthProvider();
+import { showToast } from '../components/ui/Toast';
 
 export const useAuth = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true); // 🔹 Évite une redirection prématurée
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log("🔄 Mise à jour de l'utilisateur Firebase:", user); // 🔍 Debugging
+    console.log("🔄 Initialisation de l'écouteur d'authentification");
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log("🔄 Changement d'état d'authentification:", firebaseUser?.email);
+      setLoading(true);
 
-      if (user) {
-        try {
-          const userDocRef = doc(db, 'users', user.uid);
+      try {
+        if (firebaseUser) {
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userDoc = await getDoc(userDocRef);
 
-          setUser({
-            uid: user.uid,
-            email: user.email,
-            ...(userDoc.exists() ? userDoc.data() : {}) // 🔹 Évite les erreurs si l'user n'a pas de données Firestore
-          });
-        } catch (error) {
-          console.error("❌ Erreur lors de la récupération des données Firestore:", error);
+          const userData = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            ...userDoc.exists() ? userDoc.data() : {}
+          };
+
+          console.log("✅ Données utilisateur synchronisées:", userData);
+          setUser(userData);
+        } else {
+          console.log("ℹ️ Aucun utilisateur connecté");
           setUser(null);
         }
-      } else {
+      } catch (error) {
+        console.error("❌ Erreur de synchronisation:", error);
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false); // 🔹 Fin du chargement après traitement
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log("🧹 Nettoyage de l'écouteur d'authentification");
+      unsubscribe();
+    };
   }, []);
 
-  const signup = async (email, password, username) => {
-    try {
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      
-      await setDoc(doc(db, 'users', user.uid), {
-        username,
-        email,
-        createdAt: new Date().toISOString()
-      });
-
-      return user;
-    } catch (error) {
-      throw new Error(getErrorMessage(error.code));
-    }
-  };
-
   const login = async (email, password) => {
-    try {
-      const { user } = await signInWithEmailAndPassword(auth, email, password);
-      return user;
-    } catch (error) {
-      throw new Error(getErrorMessage(error.code));
-    }
+    return showToast.promise(
+      (async () => {
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+        return {
+          uid: result.user.uid,
+          email: result.user.email,
+          ...userDoc.exists() ? userDoc.data() : {}
+        };
+      })(),
+      {
+        loading: 'Connexion en cours...',
+        success: 'Connexion réussie !',
+        error: 'Échec de la connexion'
+      }
+    );
   };
 
   const loginWithGoogle = async () => {
-    try {
-      const { user } = await signInWithPopup(auth, googleProvider);
-      
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
-      
-      if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-          username: user.displayName || user.email.split('@')[0],
-          email: user.email,
-          createdAt: new Date().toISOString()
-        });
+    return showToast.promise(
+      (async () => {
+        const provider = new GoogleAuthProvider();
+        const { user: firebaseUser } = await signInWithPopup(auth, provider);
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (!userDoc.exists()) {
+          await setDoc(userDocRef, {
+            username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+            email: firebaseUser.email,
+            createdAt: new Date().toISOString()
+          });
+        }
+
+        return {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          ...userDoc.exists() ? userDoc.data() : {}
+        };
+      })(),
+      {
+        loading: 'Connexion avec Google en cours...',
+        success: 'Connexion réussie !',
+        error: 'Échec de la connexion avec Google'
       }
-
-      return user;
-    } catch (error) {
-      throw new Error(getErrorMessage(error.code));
-    }
+    );
   };
 
-  const logout = () => {
-    return signOut(auth);
-  };
-
-  const getErrorMessage = (code) => {
-    switch (code) {
-      case 'auth/email-already-in-use':
-        return 'Cette adresse email est déjà utilisée';
-      case 'auth/invalid-email':
-        return 'Adresse email invalide';
-      case 'auth/user-not-found':
-      case 'auth/wrong-password':
-        return 'Email ou mot de passe incorrect';
-      case 'auth/too-many-requests':
-        return 'Trop de tentatives, veuillez réessayer plus tard';
-      default:
-        return 'Une erreur est survenue';
-    }
+  const logout = async () => {
+    await showToast.promise(
+      (async () => {
+        await signOut(auth);
+        setUser(null);
+      })(),
+      {
+        loading: 'Déconnexion en cours...',
+        success: 'À bientôt !',
+        error: 'Échec de la déconnexion'
+      }
+    );
   };
 
   return {
     user,
     loading,
-    signup,
     login,
     loginWithGoogle,
     logout

@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../hooks/useAuth'; // Utilisation du hook d'auth
+import LoadingScreen from '../../components/ui/LoadingScreen';
+
 
 const GoogleButton = ({ onClick }) => (
   <button
@@ -32,45 +36,74 @@ const GoogleButton = ({ onClick }) => (
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const auth = getAuth();
+  const { login, loginWithGoogle } = useAuth(); // On utilise les fonctions du contexte
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
-
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleRedirect = (user) => {
+    return new Promise((resolve) => {
+      // Attend que Firebase confirme l'authentification
+      const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+        if (firebaseUser) {
+          unsubscribe();
+          const savedRedirectPath = sessionStorage.getItem('redirectAfterLogin');
+          const targetPath = savedRedirectPath || 
+            (user.metadata.creationTime === user.metadata.lastSignInTime ? '/onboarding' : '/dashboard');
+
+          if (savedRedirectPath) {
+            sessionStorage.removeItem('redirectAfterLogin');
+          }
+
+          resolve(targetPath);
+        }
+      });
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
     
     try {
-      console.log('Tentative de connexion:', formData.email);
-      const { user } = await signInWithEmailAndPassword(auth, formData.email, formData.password);
-      console.log('Connexion réussie:', user.email);
-      navigate('/dashboard');
-    } catch (err) {
-      console.error('Erreur connexion:', err);
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        setError('Email ou mot de passe incorrect');
-      } else {
-        setError('Une erreur est survenue lors de la connexion');
+      console.log('🔄 Tentative de connexion:', formData.email);
+      await login(formData.email, formData.password);
+      console.log('✅ Connexion réussie, redirection...');
+      
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
+      if (sessionStorage.getItem('redirectAfterLogin')) {
+        sessionStorage.removeItem('redirectAfterLogin');
       }
+      
+      navigate(redirectPath);
+    } catch (err) {
+      console.error('❌ Erreur connexion:', err);
+      setIsLoading(false);
+      setError(err.message);
     }
   };
 
   const handleGoogleSignIn = async () => {
     try {
-      const provider = new GoogleAuthProvider();
-      const { user } = await signInWithPopup(auth, provider);
-      console.log('Connexion Google réussie:', user.email);
+      setIsLoading(true);
+      console.log('🔄 Tentative de connexion Google');
+      await loginWithGoogle();
+      console.log('✅ Connexion Google réussie, redirection...');
       
-      // Si c'est la première connexion, on redirige vers onboard
-      const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
-      navigate(isNewUser ? '/onboard' : '/dashboard');
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
+      if (sessionStorage.getItem('redirectAfterLogin')) {
+        sessionStorage.removeItem('redirectAfterLogin');
+      }
+      
+      navigate(redirectPath);
     } catch (err) {
-      console.error('Erreur Google:', err);
+      console.error('❌ Erreur Google:', err);
+      setIsLoading(false);
       setError('Erreur lors de la connexion avec Google');
     }
   };
@@ -84,6 +117,16 @@ const LoginPage = () => {
   };
 
   return (
+    <>
+      <AnimatePresence>
+        {isLoading && <LoadingScreen message="Connexion en cours..." />}
+      </AnimatePresence>
+
+      <motion.div 
+        initial={{ opacity: 1 }}
+        animate={{ opacity: isLoading ? 0.6 : 1 }}
+        className="min-h-screen bg-gray-50 flex flex-col py-12 px-6 lg:px-8"
+      >
     <div className="min-h-screen bg-gray-50 flex flex-col py-12 px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
@@ -201,7 +244,7 @@ const LoginPage = () => {
             <div className="mt-6">
               <button
                 type="button"
-                onClick={() => navigate('/signup')}
+                onClick={() => window.location.href = '/signup'}
                 className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
                 Créer un compte
@@ -211,6 +254,8 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
+    </motion.div>
+    </>
   );
 };
 
