@@ -13,10 +13,12 @@ import {
   collection, 
   query, 
   where, 
-  orderBy, 
+  orderBy,
+  limit,
   addDoc, 
-  onSnapshot, 
-  getDocs 
+  onSnapshot,
+  getDocs,
+  serverTimestamp
 } from 'firebase/firestore';
 
 
@@ -207,6 +209,25 @@ const GroupDetailPage = () => {
         console.error('Erreur lors du chargement des données:', error);
       }
     };
+
+    useEffect(() => {
+      if (!groupId) return;
+  
+      const chatRef = collection(db, 'groups', groupId, 'chat');
+      const q = query(chatRef, orderBy('timestamp', 'desc'), limit(50));
+  
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const newMessages = [];
+        snapshot.forEach((doc) => {
+          newMessages.push({ id: doc.id, ...doc.data() });
+        });
+        setMessages(newMessages.reverse());
+      }, (error) => {
+        console.error("Erreur lors de l'écoute des messages:", error);
+      });
+  
+      return () => unsubscribe();
+    }, [groupId]);
   
     if (groupId) {
       fetchGroupData();
@@ -215,12 +236,12 @@ const GroupDetailPage = () => {
 
   const handleSendMessage = async (text) => {
     try {
-      const messagesRef = collection(db, 'groups', groupId, 'chat');  // 'chat' au lieu de 'messages'
+      const messagesRef = collection(db, 'groups', groupId, 'chat');
       await addDoc(messagesRef, {
         userId: user.uid,
-        username: user.username || user.email.split('@')[0],
+        username: user.displayName || user.email.split('@')[0],
         text,
-        timestamp: new Date().toISOString()
+        timestamp: serverTimestamp()
       });
     } catch (error) {
       console.error('Erreur lors de l\'envoi du message:', error);
