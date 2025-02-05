@@ -1,7 +1,28 @@
-const QuizSection = ({ user }) => {
-  const hasCompletedQuiz = user?.quizCompleted;
+import React, { useState, useEffect } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../config/firebase';
 
-  if (hasCompletedQuiz) {
+const QuizSection = ({ user }) => {
+  const [quizResult, setQuizResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchQuizResult = async () => {
+      if (!user) return;
+      const quizRef = doc(db, 'quizResults', user.uid);
+      const quizDoc = await getDoc(quizRef);
+      if (quizDoc.exists()) {
+        setQuizResult(quizDoc.data());
+      }
+      setLoading(false);
+    };
+
+    fetchQuizResult();
+  }, [user]);
+
+  if (loading) return null;
+
+  if (quizResult) {
     return (
       <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-8">
         <div className="flex items-start justify-between">
@@ -9,23 +30,16 @@ const QuizSection = ({ user }) => {
             <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-2">
               Test de culture générale complété !
             </h2>
+            <p className="text-gray-600 mb-2">
+              Score obtenu : <span className="font-bold">{quizResult.score}/{quizResult.totalQuestions}</span>
+            </p>
             <p className="text-gray-600">
-              Comparez votre score avec les membres de vos groupes et voyez si vous auriez pu être Miss France !
+              Comparez votre score avec les membres de vos groupes !
             </p>
           </div>
           <div className="bg-white rounded-full p-3 shadow-md">
-            <svg 
-              className="w-8 h-8 text-pink-500" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" 
-              />
+            <svg className="w-8 h-8 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
         </div>
@@ -77,7 +91,7 @@ const QuizSection = ({ user }) => {
 
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <button
-              onClick={() => navigate('/quiz')}
+              onClick={() => navigate('/quiz-miss')}
               className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-purple-600 transition-all transform hover:scale-105 shadow-md"
             >
               Commencer le test

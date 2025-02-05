@@ -18,6 +18,7 @@ import PolitiqueConfidentialitePage from './pages/legal/PolitiqueConfidentialite
 import ProfilePage from './pages/profile/ProfilePage';
 import PageTransition from './components/transitions/PageTransition';
 import { AnimatePresence } from 'framer-motion';
+import QuizMiss from './pages/dashboard/QuizMiss';
 
 
 function App() {
@@ -71,6 +72,13 @@ function App() {
             <PrivateRoute>
               <PageTransition>
                 <RankingPage />
+              </PageTransition>
+            </PrivateRoute>
+          } />
+          <Route path="/quiz-miss" element={
+            <PrivateRoute>
+              <PageTransition>
+                <QuizMiss />
               </PageTransition>
             </PrivateRoute>
           } />
