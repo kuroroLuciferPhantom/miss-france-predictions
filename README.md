@@ -1,5 +1,5 @@
 # Miss'Pronos 🎭👑
-
+**Projet indépendant non affilié à Miss France SAS ou au Comité Miss France**
 Application web pour pronostiquer l'élection Miss France et comparer ses résultats avec ses amis.
 
 [![Style: Tailwind](https://img.shields.io/badge/Style-Tailwind-38B2AC?logo=tailwind-css)](https://tailwindcss.com)
