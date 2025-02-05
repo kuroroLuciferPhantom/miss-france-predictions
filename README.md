@@ -1,5 +1,5 @@
 # Miss'Pronos 🎭👑
-
+**Projet indépendant non affilié à Miss France SAS ou au Comité Miss France**
 Application web pour pronostiquer l'élection Miss France et comparer ses résultats avec ses amis.
 
 [![Style: Tailwind](https://img.shields.io/badge/Style-Tailwind-38B2AC?logo=tailwind-css)](https://tailwindcss.com)
@@ -8,30 +8,57 @@ Application web pour pronostiquer l'élection Miss France et comparer ses résul
 
 ## 📱 Fonctionnalités
 
-- Sélection du top 5 dans l'ordre
-- Sélection de 10 autres Miss qualifiées
-- Visualisation en direct des résultats
-- Système de points
-- Chat de groupe
+- Pronostics Miss France
+  - Top 3 complet
+  - Top 5 (4ème et 5ème place)
+  - Sélection de 10 autres Miss qualifiées
+- Groupes et classements
+  - Création et gestion de groupes privés
+  - Partage via code d'invitation
+  - Classement en direct des pronostics
+  - Chat de groupe
+- Leaderboard globale et par groupe
+- Obtention de badges (développement en cours)
+- Quiz culture générale
+  - 20 questions officielles
+  - Comparaison des scores par groupe
+
+## 🛠️ Stack Technique
+
+- **Frontend**
+  - React
+  - Tailwind CSS
+  - Framer Motion (animations)
+  - React Hot Toast (notifications)
+- **Backend**
+  - Firebase Authentication
+  - Cloud Firestore
+  - Règles de sécurité personnalisées
 
 ## 📂 Structure du projet
 
 ```
 /src
-  /components    # Composants React réutilisables
-  /pages        # Pages principales de l'application
-    /auth       # Pages d'authentification
-    /dashboard  # Dashboard
-    /groups     # Gestion des groupes
-  /services     # Services (Firebase, etc.)
-  /styles       # Fichiers CSS et styles
-  /utils        # Utilitaires et helpers
+  /components     # Composants React réutilisables
+    /ui          # Composants UI génériques
+    /dashboard   # Composants spécifiques au dashboard
+    /groups      # Composants liés aux groupes
+  /pages         # Pages principales
+  /contexts      # Contextes React (Auth, etc.)
+  /hooks         # Hooks personnalisés
+  /config        # Configuration Firebase
 ```
 
-## 🛠️ Installation
+## ⚙️ Installation
 
 ```bash
+# Cloner le projet
+git clone https://github.com/kuroroLuciferPhantom/miss-france-predictions.git
+
+# Installer les dépendances
 npm install
+
+# Lancer en développement
 npm start
 ```
 
@@ -40,8 +67,9 @@ npm start
 - [Guide de développement](https://github.com/kuroroLuciferPhantom/miss-france-predictions/issues/2)
 - [Suivi du développement](https://github.com/kuroroLuciferPhantom/miss-france-predictions/issues/1)
 
-## 🎨 Style Guide
+## 🎨 Charte graphique
 
-- Utilisation de Tailwind CSS
-- Thème principal : dégradés rose/violet
-- Design responsive et moderne
+- Couleurs principales : Rose (pink-500) et Violet (purple-500)
+- Utilisation de dégradés : `from-pink-500 to-purple-500`
+- Design responsive avec Tailwind
+- Composants réutilisables stylisés
