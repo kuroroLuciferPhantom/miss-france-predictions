@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { AuthProvider, PrivateRoute } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
+import PrivateRoute from './components/PrivateRoute'
 import Layout from './components/layout/Layout';
 import HomePage from './pages/home/HomePage';
 import ContactPage from './pages/home/ContactPage';
@@ -31,8 +32,16 @@ function App() {
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<HomePage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/login" element={
+            <PageTransition>
+              <LoginPage />
+            </PageTransition>
+          } />
+          <Route path="/signup" element={
+            <PageTransition>
+              <SignUpPage />
+            </PageTransition>
+          } />
           <Route path="/dashboard" element={
             <PrivateRoute>
               <PageTransition>

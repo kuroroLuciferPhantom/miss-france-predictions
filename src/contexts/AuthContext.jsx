@@ -22,20 +22,6 @@ export const useAuthContext = () => {
   return context;
 };
 
-export const PrivateRoute = ({ children }) => {
-  const { user, loading } = useAuthContext();
-
-  if (loading) {
-    //return <div>Chargement...</div>;
-  }
-
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
-
-  return children;
-};
-
 export const updateUsername = async (newUsername) => {
   try {
     const userRef = doc(db, 'users', user.uid);

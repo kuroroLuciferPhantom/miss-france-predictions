@@ -25,22 +25,18 @@ export const useAuth = () => {
         if (firebaseUser) {
           const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userDoc = await getDoc(userDocRef);
-
-          const userData = {
+      
+          setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             ...userDoc.exists() ? userDoc.data() : {}
-          };
-
-          console.log("✅ Données utilisateur synchronisées:", userData);
-          setUser(userData);
+          });
         } else {
-          console.log("ℹ️ Aucun utilisateur connecté");
           setUser(null);
         }
       } catch (error) {
         console.error("❌ Erreur de synchronisation:", error);
-        setUser(null);
+        setUser((prevUser) => prevUser || { uid: firebaseUser.uid, email: firebaseUser.email }); // 🔥 Garde au moins les infos Firebase
       } finally {
         setLoading(false);
       }
@@ -56,12 +52,24 @@ export const useAuth = () => {
     return showToast.promise(
       (async () => {
         const result = await signInWithEmailAndPassword(auth, email, password);
-        const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-        return {
+        const userDocRef = doc(db, 'users', result.user.uid);
+        let userData;
+  
+        if (!(await getDoc(userDocRef)).exists()) {
+          await setDoc(userDocRef, {
+            email: result.user.email,
+            createdAt: new Date().toISOString()
+          });
+        }
+  
+        const userDoc = await getDoc(userDocRef);
+        userData = {
           uid: result.user.uid,
           email: result.user.email,
           ...userDoc.exists() ? userDoc.data() : {}
         };
+  
+        return userData;
       })(),
       {
         loading: 'Connexion en cours...',
@@ -77,21 +85,25 @@ export const useAuth = () => {
         const provider = new GoogleAuthProvider();
         const { user: firebaseUser } = await signInWithPopup(auth, provider);
         const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (!userDoc.exists()) {
+        let userData;
+  
+        if (!(await getDoc(userDocRef)).exists()) {
           await setDoc(userDocRef, {
             username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
             email: firebaseUser.email,
             createdAt: new Date().toISOString()
           });
         }
-
-        return {
+  
+        // 🔥 On refait un getDoc() pour être sûr d'avoir les dernières données
+        const newUserDoc = await getDoc(userDocRef);
+        userData = {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
-          ...userDoc.exists() ? userDoc.data() : {}
+          ...newUserDoc.exists() ? newUserDoc.data() : {}
         };
+  
+        return userData;
       })(),
       {
         loading: 'Connexion avec Google en cours...',
@@ -103,10 +115,7 @@ export const useAuth = () => {
 
   const logout = async () => {
     await showToast.promise(
-      (async () => {
-        await signOut(auth);
-        setUser(null);
-      })(),
+      signOut(auth),
       {
         loading: 'Déconnexion en cours...',
         success: 'À bientôt !',

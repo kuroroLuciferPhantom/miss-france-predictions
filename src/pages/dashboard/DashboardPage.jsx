@@ -150,7 +150,7 @@ const PredictionSummary = ({ prediction }) => {
   );
 };
 
-const GroupCard = ({ group, userRank, user }) => (
+const GroupCard = ({ navigate, group, userRank, user }) => (
   <div className="bg-white rounded-xl shadow p-6 hover:shadow-md transition-shadow">
     <div className="flex justify-between items-start mb-4">
       <div>
@@ -183,9 +183,9 @@ const GroupCard = ({ group, userRank, user }) => (
     </div>
 
     <button 
-      onClick={() => window.location.href = `/group/${group.id}`}
+      onClick={() => navigate(`/group/${group.id}`)}
       className="w-full px-4 py-2 bg-gray-50 text-gray-700 rounded-lg font-medium hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:text-white transition-colors"
-    >
+      >
       Voir le groupe
     </button>
   </div>
@@ -375,6 +375,7 @@ const DashboardPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredGroups.map(group => (
                 <GroupCard
+                  navigate={navigate}
                   key={group.id}
                   group={group}
                   userRank={group.userRank}

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth'; // Utilisation du hook d'auth
@@ -45,47 +44,39 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleRedirect = (user) => {
-    return new Promise((resolve) => {
-      // Attend que Firebase confirme l'authentification
-      const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
-        if (firebaseUser) {
-          unsubscribe();
-          const savedRedirectPath = sessionStorage.getItem('redirectAfterLogin');
-          const targetPath = savedRedirectPath || 
-            (user.metadata.creationTime === user.metadata.lastSignInTime ? '/onboarding' : '/dashboard');
-
-          if (savedRedirectPath) {
-            sessionStorage.removeItem('redirectAfterLogin');
-          }
-
-          resolve(targetPath);
-        }
-      });
-    });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+  
     try {
       console.log('🔄 Tentative de connexion:', formData.email);
       await login(formData.email, formData.password);
       console.log('✅ Connexion réussie, redirection...');
-      
+  
       const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
-      if (sessionStorage.getItem('redirectAfterLogin')) {
-        sessionStorage.removeItem('redirectAfterLogin');
-      }
+      sessionStorage.removeItem('redirectAfterLogin');
       
       navigate(redirectPath);
     } catch (err) {
-      console.error('❌ Erreur connexion:', err);
+      console.error('❌ Erreur connexion:', err.code);
+  
       setIsLoading(false);
-      setError(err.message);
+      setError(getFirebaseErrorMessage(err.code)); // 🔥 Traduction de l'erreur
     }
+  };
+  
+  const getFirebaseErrorMessage = (errorCode) => {
+    const messages = {
+      "auth/invalid-credential": "❌ Email ou mot de passe incorrect.",
+      "auth/user-not-found": "❌ Aucun compte trouvé avec cet email.",
+      "auth/too-many-requests": "⚠️ Trop de tentatives. Réessayez plus tard.",
+      "auth/invalid-email": "❌ Format d'email invalide.",
+      "auth/network-request-failed": "⚠️ Problème de connexion internet.",
+      "auth/internal-error": "⚠️ Erreur interne. Réessayez plus tard."
+    };
+  
+    return messages[errorCode] || "⚠️ Une erreur est survenue. Veuillez réessayer.";
   };
 
   const handleGoogleSignIn = async () => {

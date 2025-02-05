@@ -28,7 +28,7 @@ const Countdown = () => {
 
   return (
     <div className="bg-pink-50 py-3 px-6 rounded-lg flex items-center justify-center space-x-4">
-      <span className="text-pink-600 font-medium">Élection Miss France 2025 dans :</span>
+      <span className="text-pink-600 font-medium">Élection Miss France 2026 dans :</span>
       <div className="flex space-x-2 text-pink-600 font-bold">
         <span>{days} jours</span>
         <span>et</span>
@@ -162,7 +162,7 @@ const CallToAction = ({ onCreateGroup, onJoinGroup }) => (
     <div className="max-w-3xl mx-auto text-center px-4">
       <h2 className="text-3xl font-bold mb-6">Prêt à faire vos pronostics ?</h2>
       <p className="text-lg mb-8">
-        Rejoignez la communauté et défiez vos amis pour devenir le meilleur pronostiqueur Miss France 2025 !
+        Rejoignez la communauté et défiez vos amis pour devenir le meilleur pronostiqueur Miss France 2026 !
       </p>
       <div className="flex justify-center space-x-4">
         <button 
@@ -219,7 +219,7 @@ const HomePage = () => {
       <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Pronostiquez l'élection Miss France 2025
+            Pronostiquez l'élection Miss France 2026
           </h2>
           <p className="text-xl text-gray-600 mb-8">
             Créez votre groupe, invitez vos amis et devinez qui sera la prochaine Miss France !
