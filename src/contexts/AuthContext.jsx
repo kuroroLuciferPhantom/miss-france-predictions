@@ -26,7 +26,7 @@ export const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuthContext();
 
   if (loading) {
-    return <div>Chargement...</div>;
+    //return <div>Chargement...</div>;
   }
 
   if (!user) {
@@ -94,7 +94,6 @@ export const deleteUserAccount = async () => {
 const signOut = async () => {
   try {
     await auth.signOut();
-    // Optionnel : redirection vers login
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error);
     throw error;
