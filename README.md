@@ -17,10 +17,11 @@ Application web pour pronostiquer l'élection Miss France et comparer ses résul
   - Partage via code d'invitation
   - Classement en direct des pronostics
   - Chat de groupe
+- Leaderboard globale et par groupe
+- Obtention de badges (développement en cours)
 - Quiz culture générale
   - 20 questions officielles
   - Comparaison des scores par groupe
-  - Une seule tentative autorisée
 
 ## 🛠️ Stack Technique
 
