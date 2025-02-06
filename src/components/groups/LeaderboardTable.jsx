@@ -44,7 +44,7 @@ const LeaderboardTable = ({ members, eventStarted }) => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedMembers.map((member, index) => (
-              <tr key={member.id}>
+              <tr key={member.userId}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     {index < 3 && (

@@ -5,7 +5,8 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  createUserWithEmailAndPassword
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
@@ -124,11 +125,43 @@ export const useAuth = () => {
     );
   };
 
+  // Ajout de la fonction signup
+  const signup = async (email, password, username) => {
+    return showToast.promise(
+      (async () => {
+        // Créer l'utilisateur dans Firebase Auth
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Créer le document utilisateur dans Firestore
+        const userDocRef = doc(db, 'users', userCredential.user.uid);
+        const userData = {
+          username,
+          email,
+          createdAt: new Date().toISOString()
+        };
+        
+        await setDoc(userDocRef, userData);
+        
+        return {
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          ...userData
+        };
+      })(),
+      {
+        loading: 'Création du compte...',
+        success: 'Compte créé avec succès !',
+        error: 'Échec de la création du compte'
+      }
+    );
+  };
+
   return {
     user,
     loading,
     login,
     loginWithGoogle,
-    logout
+    logout,
+    signup
   };
 };

@@ -1,6 +1,5 @@
 import React, { createContext, useContext } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { Navigate } from 'react-router-dom';
 
 const AuthContext = createContext({});
 
@@ -73,15 +72,6 @@ export const deleteUserAccount = async () => {
     await deleteUser(auth.currentUser);
     
   } catch (error) {
-    throw error;
-  }
-};
-
-const signOut = async () => {
-  try {
-    await auth.signOut();
-  } catch (error) {
-    console.error('Erreur lors de la déconnexion:', error);
     throw error;
   }
 };

@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import LeaderboardTable from '../../components/groups/LeaderboardTable';
 import PredictionsList from '../../components/groups/PredictionsList';
 import GroupStats from '../../components/groups/GroupStats';
 import { db } from '../../config/firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import UserPredictionSummary from '../../components/groups/UserPredictionSummary';
+import QuizLeaderboard from '../../components/groups/QuizLeaderboard';
+import QuizSection from '../../components/dashboard/QuizSection';
+import { Dialog } from '@headlessui/react';
+import toast from 'react-hot-toast';
 import { 
   doc, 
   getDoc, 
@@ -18,7 +21,9 @@ import {
   addDoc, 
   onSnapshot,
   getDocs,
-  serverTimestamp
+  serverTimestamp,
+  updateDoc,
+  deleteDoc
 } from 'firebase/firestore';
 
 
@@ -64,6 +69,20 @@ const Chat = ({ messages, onSendMessage }) => {
     }
   };
 
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '';
+    // Si c'est un timestamp Firestore
+    if (timestamp && timestamp.toDate) {
+      return timestamp.toDate().toLocaleTimeString();
+    }
+    // Si c'est déjà une date
+    if (timestamp instanceof Date) {
+      return timestamp.toLocaleTimeString();
+    }
+    // Si c'est un timestamp en string
+    return new Date(timestamp).toLocaleTimeString();
+  };
+
   return (
     <div className="bg-white rounded-lg shadow p-4 flex flex-col h-[600px]">
       <h2 className="text-xl font-semibold mb-4">Chat du groupe</h2>
@@ -74,7 +93,7 @@ const Chat = ({ messages, onSendMessage }) => {
             <div className="flex items-baseline space-x-2">
               <span className="font-medium">{message.username}</span>
               <span className="text-xs text-gray-500">
-                {new Date(message.timestamp).toLocaleTimeString()}
+                {formatTimestamp(message.timestamp)}
               </span>
             </div>
             <p className="mt-1">{message.text}</p>
@@ -106,7 +125,7 @@ const MembersList = ({ members }) => (
     <h2 className="text-xl font-semibold mb-4">Participants ({members.length})</h2>
     <div className="space-y-3">
       {members.map((member) => (
-        <div key={member.id} className="flex items-center justify-between border-b pb-2 last:border-b-0">
+        <div key={member.userId} className="flex items-center justify-between border-b pb-2 last:border-b-0">
           <div className="flex items-center gap-2">
             <span className={`w-2 h-2 rounded-full ${member.isOnline ? 'bg-green-500' : 'bg-gray-300'}`} />
             <span className="font-medium">{member.username}</span>
@@ -170,6 +189,10 @@ const GroupDetailPage = () => {
   const [predictions, setPredictions] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false); // Initialiser à false par défaut
   const [userHasPredicted, setUserHasPredicted] = useState(false);
+  const [hasCompletedQuiz, setHasCompletedQuiz] = useState(false);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const fetchGroupData = async () => {
@@ -177,6 +200,7 @@ const GroupDetailPage = () => {
         // Récupérer le groupe
         const groupRef = doc(db, 'groups', groupId);
         const groupSnapshot = await getDoc(groupRef);
+        console.log("Group Data:", groupSnapshot.data());
         
         if (groupSnapshot.exists()) {
           const groupData = groupSnapshot.data();
@@ -204,39 +228,57 @@ const GroupDetailPage = () => {
             setUserHasPredicted(false);
             setPredictions([]);
           }
-        }
+
+          const quizDoc = await getDoc(doc(db, 'quizResults', user.uid));
+            setHasCompletedQuiz(quizDoc.exists());
+          }
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
       }
     };
-
-    useEffect(() => {
-      if (!groupId) return;
-  
-      const chatRef = collection(db, 'groups', groupId, 'chat');
-      const q = query(chatRef, orderBy('timestamp', 'desc'), limit(50));
-  
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const newMessages = [];
-        snapshot.forEach((doc) => {
-          newMessages.push({ id: doc.id, ...doc.data() });
-        });
-        setMessages(newMessages.reverse());
-      }, (error) => {
-        console.error("Erreur lors de l'écoute des messages:", error);
-      });
-  
-      return () => unsubscribe();
-    }, [groupId]);
   
     if (groupId) {
       fetchGroupData();
     }
   }, [groupId, user]);
 
+  useEffect(() => {
+    if (!groupId) {
+      console.log("No groupId");
+      return;
+    }
+    
+    console.log("Setting up chat listener for group:", groupId);
+    
+    const chatRef = collection(db, 'groups', groupId, 'chat');
+    const q = query(chatRef, orderBy('timestamp', 'desc'), limit(50));
+  
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      console.log("Chat snapshot received:", snapshot.size, "messages");
+      const newMessages = [];
+      snapshot.forEach((doc) => {
+        console.log("Message data:", doc.data());
+        newMessages.push({ id: doc.id, ...doc.data() });
+      });
+      setMessages(newMessages.reverse());
+    }, (error) => {
+      console.error("Erreur détaillée lors de l'écoute des messages:", error);
+      if (error.code) console.log('Error code:', error.code);
+      if (error.message) console.log('Error message:', error.message);
+    });
+  
+    return () => unsubscribe();
+  }, [groupId]);
+
   const handleSendMessage = async (text) => {
     try {
       const messagesRef = collection(db, 'groups', groupId, 'chat');
+      console.log("Sending message:", {
+        userId: user.uid,
+        username: user.displayName || user.email.split('@')[0],
+        text,
+        timestamp: serverTimestamp()
+      });
       await addDoc(messagesRef, {
         userId: user.uid,
         username: user.displayName || user.email.split('@')[0],
@@ -244,7 +286,10 @@ const GroupDetailPage = () => {
         timestamp: serverTimestamp()
       });
     } catch (error) {
-      console.error('Erreur lors de l\'envoi du message:', error);
+      console.error('Erreur détaillée:', error);
+      // Log plus détaillé de l'erreur
+      if (error.code) console.log('Error code:', error.code);
+      if (error.message) console.log('Error message:', error.message);
     }
   };
 
@@ -252,26 +297,61 @@ const GroupDetailPage = () => {
     return <div>Chargement...</div>;
   }
 
+  // Fonction pour renommer le groupe
+  const handleRenameGroup = async () => {
+    if (!newGroupName.trim()) return;
+
+    try {
+      const groupRef = doc(db, 'groups', groupId);
+      await updateDoc(groupRef, {
+        name: newGroupName.trim()
+      });
+
+      // Mettre à jour le state local
+      setGroup(prev => ({
+        ...prev,
+        name: newGroupName.trim()
+      }));
+
+      setShowRenameModal(false);
+      toast.success('Nom du groupe modifié avec succès');
+    } catch (error) {
+      console.error('Erreur lors du renommage du groupe:', error);
+      toast.error('Erreur lors de la modification du nom du groupe');
+    }
+  };
+
+  // Fonction pour supprimer le groupe
+  const handleDeleteGroup = async () => {
+    try {
+      await deleteDoc(doc(db, 'groups', groupId));
+      toast.success('Groupe supprimé avec succès');
+      navigate('/dashboard');  // Rediriger vers le dashboard
+    } catch (error) {
+      console.error('Erreur lors de la suppression du groupe:', error);
+      toast.error('Erreur lors de la suppression du groupe');
+    }
+  };
+
   const renderContent = () => {
     switch(currentTab) {
       case 'stats':
         return (
           <>
-            <GroupStats 
-              predictions={predictions}
-              members={group.members}
-            />
             <LeaderboardTable 
               members={group.members}
               eventStarted={eventStarted}
+            />
+            <GroupStats 
+              predictions={predictions}
+              members={group.members}
             />
           </>
         );
       case 'predictions':
         return (
           <PredictionsList 
-            predictions={predictions}
-            eventStarted={eventStarted}
+            groupId={groupId}
           />
         );
       case 'chat':
@@ -281,14 +361,60 @@ const GroupDetailPage = () => {
             onSendMessage={handleSendMessage}
           />
         );
-      default:
-        return null;
-    }
+        case 'quiz':
+          return (
+            <div>
+              {hasCompletedQuiz ? (
+                <QuizLeaderboard groupMembers={group.members} />
+              ) : (
+                <div>
+                  <QuizSection user={user} />
+                </div>
+              )}
+            </div>
+          );
+        default:
+          return null;
+      }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* En-tête du groupe simplifié */}
+        <div className="bg-white rounded-xl shadow-sm mb-8">
+          <div className="px-6 py-5">
+            {/* Titre et description */}
+            <h1 className="text-2xl font-bold text-gray-900">{group?.name}</h1>
+            {group?.description && (
+              <p className="mt-2 text-gray-500">{group.description}</p>
+            )}
+
+            {/* Infos supplémentaires */}
+            <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
+              <div>
+                <span className="font-medium">Créé par :</span>{' '}
+                {group?.adminUsername || 'Administrateur'}
+              </div>
+              <div>
+                <span className="font-medium">Créé le :</span>{' '}
+                {group?.createdAt ? new Date(group.createdAt).toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                }) : ''}
+              </div>
+              <div>
+                <span className="font-medium">Membres :</span>{' '}
+                {group?.members?.length || 0} participant{group?.members?.length !== 1 ? 's' : ''}
+              </div>
+              <div>
+                <span className="font-medium">Prédictions complètes :</span>{' '}
+                {group?.members?.filter(m => m.hasSubmitted)?.length || 0} / {group?.members?.length || 0}
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Colonne gauche */}
           <div className="lg:col-span-1 space-y-6">
@@ -296,9 +422,78 @@ const GroupDetailPage = () => {
             <ShareInviteCode code={group.inviteCode} />
             <GroupSettings 
               isAdmin={isAdmin}
-              onRename={() => console.log('Renommer le groupe')}
-              onDelete={() => console.log('Supprimer le groupe')}
+              onRename={() => {
+                setNewGroupName(group.name);
+                setShowRenameModal(true);
+              }}
+              onDelete={() => setShowDeleteConfirm(true)}
             />
+
+             {/* Modal de renommage */}
+            <Dialog open={showRenameModal} onClose={() => setShowRenameModal(false)}>
+              <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+              <div className="fixed inset-0 flex items-center justify-center p-4">
+                <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white p-6">
+                  <Dialog.Title className="text-lg font-medium text-gray-900 mb-4">
+                    Modifier le nom du groupe
+                  </Dialog.Title>
+
+                  <input
+                    type="text"
+                    value={newGroupName}
+                    onChange={(e) => setNewGroupName(e.target.value)}
+                    placeholder="Nouveau nom du groupe"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                  />
+
+                  <div className="mt-6 flex justify-end space-x-3">
+                    <button
+                      onClick={() => setShowRenameModal(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={handleRenameGroup}
+                      className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-md hover:from-pink-600 hover:to-purple-600"
+                    >
+                      Confirmer
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </div>
+            </Dialog>
+
+            {/* Modal de confirmation de suppression */}
+            <Dialog open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
+              <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+              <div className="fixed inset-0 flex items-center justify-center p-4">
+                <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white p-6">
+                  <Dialog.Title className="text-lg font-medium text-gray-900 mb-4">
+                    Supprimer le groupe
+                  </Dialog.Title>
+
+                  <p className="text-gray-600 mb-6">
+                    Êtes-vous sûr de vouloir supprimer ce groupe ? Cette action est irréversible.
+                  </p>
+
+                  <div className="flex justify-end space-x-3">
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={handleDeleteGroup}
+                      className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </div>
+            </Dialog>
           </div>
 
           {/* Colonne droite - Pronostics, Classement et Chat */}
@@ -314,21 +509,21 @@ const GroupDetailPage = () => {
             {/* Navigation par onglets */}
             <div className="bg-white rounded-lg shadow">
               <div className="border-b border-gray-200">
-                <nav className="flex -mb-px">
-                  {['stats', 'predictions', 'chat'].map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setCurrentTab(tab)}
-                      className={`py-4 px-6 font-medium text-sm border-b-2 ${
-                        currentTab === tab
-                          ? 'border-pink-500 text-pink-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                    </button>
-                  ))}
-                </nav>
+              <nav className="flex -mb-px">
+                {['stats', 'predictions', 'chat', 'quiz'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setCurrentTab(tab)}
+                    className={`py-4 px-6 font-medium text-sm border-b-2 ${
+                      currentTab === tab
+                        ? 'border-pink-500 text-pink-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {tab === 'quiz' ? 'QCM Miss' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </nav>
               </div>
               
               <div className="p-6">

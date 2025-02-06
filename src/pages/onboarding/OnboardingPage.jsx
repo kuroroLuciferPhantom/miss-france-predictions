@@ -14,6 +14,10 @@ const OnboardingPage = () => {
     navigate('/group/join');
   };
 
+  const handleGoDashboard = () => {
+    navigate('/dashboard');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -32,12 +36,34 @@ const OnboardingPage = () => {
             Votre compte a été créé avec succès
           </h2>
           <p className="text-xl text-gray-600">
-            Pour commencer à faire vos pronostics, rejoignez un groupe ou créez le vôtre !
+            Vous pouvez maintenant commencer à faire vos pronostics ou rejoindre un groupe !
           </p>
         </div>
 
-        {/* Options de groupe */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        {/* Grid des options */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {/* Aller au dashboard */}
+          <div 
+            onClick={handleGoDashboard}
+            className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 flex flex-col items-center text-center cursor-pointer"
+          >
+            <div className="bg-gradient-to-br from-pink-100 to-purple-100 rounded-full p-4 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Faire mes pronostics</h3>
+            <p className="text-gray-600 mb-4">
+              Commencez dès maintenant à saisir vos pronostics pour Miss France 2025
+            </p>
+            <span className="inline-flex items-center text-pink-500 font-semibold">
+              Accéder au dashboard
+              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </div>
+
           {/* Créer un groupe */}
           <div 
             onClick={handleCreateGroup}
@@ -52,7 +78,12 @@ const OnboardingPage = () => {
             <p className="text-gray-600 mb-4">
               Créez votre propre groupe et invitez vos amis à vous rejoindre pour comparer vos pronostics
             </p>
-            <span className="text-pink-500 font-semibold">Créer un groupe →</span>
+            <span className="inline-flex items-center text-pink-500 font-semibold">
+              Créer un groupe
+              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
           </div>
 
           {/* Rejoindre un groupe */}
@@ -69,7 +100,12 @@ const OnboardingPage = () => {
             <p className="text-gray-600 mb-4">
               Utilisez un code d'invitation pour rejoindre un groupe existant et participer aux pronostics
             </p>
-            <span className="text-purple-500 font-semibold">Rejoindre un groupe →</span>
+            <span className="inline-flex items-center text-purple-500 font-semibold">
+              Rejoindre un groupe
+              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
           </div>
         </div>
 

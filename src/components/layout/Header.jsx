@@ -12,7 +12,7 @@ const Header = () => {
       <div className="flex justify-between items-center h-16">
         {/* Logo / Titre */}
         <Link to="/" className="flex items-center space-x-2">
-          <img src="logo_misspronos.svg" alt="Miss'Pronos Logo" className="h-10 w-auto" />
+          <img src="/logo_misspronos.svg" alt="Miss'Pronos Logo" className="h-10 w-auto" />
           <span className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
             Miss'Pronos
           </span>

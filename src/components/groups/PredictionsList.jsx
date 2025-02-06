@@ -1,93 +1,197 @@
-import React from 'react';
-import { Eye, EyeOff, Lock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { db } from '../../config/firebase';
+import { collection, query, where, getDocs, getDoc, doc } from 'firebase/firestore';
+import { useAuthContext } from '../../contexts/AuthContext';
+import { Lock, Eye, EyeOff } from 'lucide-react';
 
-const PredictionsList = ({ predictions, eventStarted }) => {
-  // Fonction pour déterminer si on peut voir les pronostics
-  const canViewPrediction = (prediction) => {
-    return eventStarted || prediction.isPublic;
+const PredictionsList = ({ groupId }) => {
+  const [predictions, setPredictions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [eventStarted, setEventStarted] = useState(false);
+  const { user } = useAuthContext();
+
+  useEffect(() => {
+    const fetchPredictions = async () => {
+      try {
+        // Vérifier si l'événement a commencé
+        const eventDoc = await getDoc(doc(db, 'events', 'missfranceEventStatus'));
+        const isStarted = eventDoc.exists() ? eventDoc.data().started : false;
+        setEventStarted(isStarted);
+
+        // D'abord récupérer le groupe pour avoir la liste des membres
+        const groupDoc = await getDoc(doc(db, 'groups', groupId));
+        const members = groupDoc.data().members;
+
+        // Ensuite récupérer les prédictions pour chaque membre individuellement
+        const allPredictions = [];
+        for (const member of members) {
+          try {
+            const memberPrediction = await getDoc(doc(db, 'predictions', member.userId));
+            if (memberPrediction.exists()) {
+              const predData = memberPrediction.data();
+              // N'ajouter que si c'est le bon groupe
+              if (predData.groupId === groupId) {
+                allPredictions.push({
+                  id: memberPrediction.id,
+                  ...predData,
+                  username: member.username,
+                  isCurrentUser: member.userId === user.uid
+                });
+              }
+            }
+          } catch (err) {
+            console.log(`Pas de prédiction pour ${member.username}`);
+          }
+        }
+        
+        setPredictions(allPredictions);
+      } catch (error) {
+        console.error('Erreur lors du chargement des prédictions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (groupId) {
+      fetchPredictions();
+    }
+  }, [groupId, user]);
+
+  const renderPredictionContent = (prediction) => {
+    const canView = eventStarted || prediction.isPublic || prediction.isCurrentUser;
+    const isPending = !prediction.isComplete;
+
+    if (isPending) {
+      return (
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="text-gray-500">
+            En attente des prédictions...
+          </div>
+        </div>
+      );
+    }
+
+    if (!canView) {
+      return (
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center space-x-2 text-gray-500">
+            <Lock size={16} />
+            <span>Prédictions privées</span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-medium text-gray-700 mb-2">Top 3</h4>
+            <div className="space-y-2">
+              {prediction.top3?.map((miss, index) => (
+                <div key={index} className="flex items-center space-x-2 bg-pink-50 p-2 rounded">
+                  <span className="font-bold text-pink-600">#{index + 1}</span>
+                  <span>{miss.name}</span>
+                  <span className="text-gray-500 text-sm">({miss.region})</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-gray-700 mb-2">Top 5</h4>
+            <div className="space-y-2">
+              {prediction.top5?.map((miss, index) => (
+                <div key={index} className="flex items-center space-x-2 bg-purple-50 p-2 rounded">
+                  <span className="font-bold text-purple-600">#{index + 4}</span>
+                  <span>{miss.name}</span>
+                  <span className="text-gray-500 text-sm">({miss.region})</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-gray-700 mb-2">Qualifiées</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {prediction.qualified?.map((miss, index) => (
+                <div key={index} className="flex items-center space-x-2 bg-gray-50 p-2 rounded">
+                  <span>{miss.name}</span>
+                  <span className="text-gray-500 text-sm">({miss.region})</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </>
+    );
   };
 
-  // Fonction pour formater le top 5
-  const formatTopFive = (top5) => {
-    return top5.map((miss, index) => `${index + 1}. ${miss.name}`).join('\n');
-  };
+  if (loading) {
+    return (
+      <div className="animate-pulse space-y-6">
+        {[1, 2].map((n) => (
+          <div key={n} className="bg-white rounded-lg shadow-sm p-6">
+            <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="space-y-4">
+              <div className="h-20 bg-gray-200 rounded"></div>
+              <div className="h-20 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (predictions.length === 0) {
+    return (
+      <div className="text-center p-8 bg-gray-50 rounded-lg">
+        <p className="text-gray-600">Aucune prédiction pour le moment</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm">
-      <div className="px-4 py-5 sm:px-6">
-        <h2 className="text-lg font-medium text-gray-900">Pronostics du groupe</h2>
-      </div>
-      <div className="border-t border-gray-200">
-        <ul className="divide-y divide-gray-200">
-          {predictions.map((prediction) => (
-            <li key={prediction.userId} className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    {prediction.userAvatar ? (
-                      <img
-                        className="h-10 w-10 rounded-full"
-                        src={prediction.userAvatar}
-                        alt={prediction.username}
-                      />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center text-white font-medium">
-                        {prediction.username.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">
-                      {prediction.username}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {canViewPrediction(prediction) ? (
-                        <>
-                          <div className="mt-1">
-                            <span className="font-medium">Top 5:</span>
-                            <pre className="mt-1 text-xs whitespace-pre-line">
-                              {formatTopFive(prediction.top5)}
-                            </pre>
-                          </div>
-                          {prediction.qualifiees && (
-                            <div className="mt-2">
-                              <span className="font-medium">Autres qualifiées:</span>
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                {prediction.qualifiees.map((miss) => (
-                                  <span
-                                    key={miss.id}
-                                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800"
-                                  >
-                                    {miss.name}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <span className="inline-flex items-center text-gray-500">
-                          <EyeOff className="w-4 h-4 mr-1" />
-                          Pronostics privés
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  {eventStarted ? (
-                    <Lock className="w-5 h-5 text-purple-500" />
-                  ) : prediction.isPublic ? (
-                    <Eye className="w-5 h-5 text-green-500" />
-                  ) : (
-                    <EyeOff className="w-5 h-5 text-gray-400" />
-                  )}
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+    <div className="space-y-8">
+      {!eventStarted && (
+        <div className="bg-amber-50 p-4 rounded-lg mb-6">
+          <p className="text-amber-700">
+            Les prédictions privées seront visibles par tous les membres du groupe 
+            dès le lancement de l'émission Miss France.
+          </p>
+        </div>
+      )}
+
+      {predictions.map((prediction) => (
+        <div key={prediction.id} className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4 pb-4 border-b">
+            <div className="flex items-center space-x-2">
+              <h3 className="text-lg font-semibold">
+                {prediction.username}
+                {prediction.isCurrentUser && (
+                  <span className="ml-2 text-sm text-gray-500">(Vous)</span>
+                )}
+              </h3>
+            </div>
+            <div className="flex items-center space-x-2 text-gray-500">
+              {prediction.isPublic ? (
+                <Eye size={16} />
+              ) : (
+                <EyeOff size={16} />
+              )}
+              <span className="text-sm">
+                {prediction.isPublic ? 'Public' : 'Privé'}
+              </span>
+            </div>
+          </div>
+          {renderPredictionContent(prediction)}
+          {prediction.lastUpdated && (
+            <div className="mt-4 text-sm text-gray-500">
+              Dernière mise à jour : {new Date(prediction.lastUpdated).toLocaleDateString()}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 };

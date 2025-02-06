@@ -12,11 +12,50 @@ const questions = [
     correct: "Paris" 
   },
   { 
-    question: "Combien font 5 + 3 ?", 
-    options: ["5", "8", "10", "15"], 
-    correct: "8" 
+    question: "En quelle année a eu lieu la Révolution française ?", 
+    options: ["1492", "1789", "1914", "1815"], 
+    correct: "1789" 
   },
-  // ... autres questions
+  { 
+    question: "Quel est le plus grand océan du monde ?", 
+    options: ["Atlantique", "Pacifique", "Indien", "Arctique"], 
+    correct: "Pacifique" 
+  },
+  { 
+    question: "Qui a réalisé le film 'Inception' ?", 
+    options: ["Quentin Tarantino", "Steven Spielberg", "Christopher Nolan", "James Cameron"], 
+    correct: "Christopher Nolan" 
+  },
+  { 
+    question: "Combien de joueurs y a-t-il dans une équipe de football sur le terrain ?", 
+    options: ["9", "10", "11", "12"], 
+    correct: "11" 
+  },
+  { 
+    question: "Quel est le symbole chimique de l'or ?", 
+    options: ["Au", "Ag", "Fe", "O"], 
+    correct: "Au" 
+  },
+  { 
+    question: "Qui a peint la Joconde ?", 
+    options: ["Vincent van Gogh", "Pablo Picasso", "Leonard de Vinci", "Claude Monet"], 
+    correct: "Leonard de Vinci" 
+  },
+  { 
+    question: "Quel est le plus long fleuve du monde ?", 
+    options: ["Amazone", "Nil", "Mississippi", "Yangtsé"], 
+    correct: "Amazone" 
+  },
+  { 
+    question: "Dans quelle ville se trouve la statue du Christ Rédempteur ?", 
+    options: ["Buenos Aires", "Mexico", "Rio de Janeiro", "Lisbonne"], 
+    correct: "Rio de Janeiro" 
+  },
+  { 
+    question: "Quelle planète est surnommée la 'planète rouge' ?", 
+    options: ["Mars", "Jupiter", "Vénus", "Saturne"], 
+    correct: "Mars" 
+  }
 ];
 
 const QuizMiss = () => {
