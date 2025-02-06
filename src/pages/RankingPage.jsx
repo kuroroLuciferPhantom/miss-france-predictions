@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import MissCard from '../components/MissCard';
 import GameRules from '../components/GameRules';
@@ -198,19 +198,29 @@ const RankingPage = () => {
     );
   });
 
+  const location = useLocation();
+  const handleBack = () => {
+    if (location.state?.from === 'group') {
+      navigate(`/group/${location.state.groupId}`);
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
-            <Link 
-              to="/dashboard"
+            <button 
+              onClick={handleBack}
               className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
-              Retour au dashboard
-            </Link>
+              {location.state?.from === 'group' ? 'Retour au groupe' : 'Retour au dashboard'}
+            </button>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
             Mes pronostics Miss France 2025

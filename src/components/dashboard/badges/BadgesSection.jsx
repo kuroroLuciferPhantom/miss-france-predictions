@@ -34,98 +34,98 @@ const BADGES_CONFIG = [
   },
   {
     id: 'madameIrma',
-    name: 'Madame Irma',
+    title: 'Madame Irma',
     description: 'A trouvé la nouvelle Miss France',
     image: '/badges/madame-irma.svg',
     category: 'predictions'
   },
   {
     id: 'laVoixAParle',
-    name: 'La Voix a parlé', 
+    title: 'La Voix a parlé', 
     description: 'A deviné le Top 5 exact',
     image: '/badges/la-voix.svg',
     category: 'predictions'
   },
   {
     id: 'reigneCanape',
-    name: 'Reine du Canap\'',
+    title: 'Reine du Canap\'',
     description: 'A fait un bon score sans jamais avoir changé ses pronos',
     image: '/badges/reine-canape.svg',
     category: 'predictions'  
   },
   {
     id: 'missNostradamus',
-    name: 'Miss Nostradamus',
+    title: 'Miss Nostradamus',
     description: 'A trouvé à l\'avance la majorité du Top 10',
     image: '/badges/nostradamus.svg',
     category: 'predictions'
   },
   {
     id: 'coupDeFoudre',
-    name: 'Coup de Foudre à la Couronne',
+    title: 'Coup de Foudre à la Couronne',
     description: 'A placé la future Miss France en première position dès son premier prono',
     image: '/badges/coup-foudre.svg',
     category: 'predictions'
   },
   {
     id: 'goldenBuzzer',
-    name: 'Miss Golden Buzzer',
+    title: 'Miss Golden Buzzer',
     description: 'A mis une candidate sous-estimée dans son Top 3, et elle a fini sur le podium',
     image: '/badges/golden-buzzer.svg',
     category: 'predictions'
   },
   {
     id: 'chouchouteJury',
-    name: 'Chouchoute du Jury',
+    title: 'Chouchoute du Jury',
     description: 'Son prono final est très proche du classement officiel',
     image: '/badges/chouchoute-jury.svg',
     category: 'predictions'
   },
   {
     id: 'flopBeauty',
-    name: 'Flop Beauty',
+    title: 'Flop Beauty',
     description: 'A fait un score catastrophique',
     image: '/badges/flop-beauty.svg',
     category: 'predictions'
   },
   {
     id: 'bourreauMiss',
-    name: 'Bourreau des Miss',
+    title: 'Bourreau des Miss',
     description: 'A descendu une future gagnante dans ses commentaires',
     image: '/badges/bourreau-miss.svg',
     category: 'social'
   },
   {
     id: 'missMeteo',
-    name: 'Miss Météo en PLS',
+    title: 'Miss Météo en PLS',
     description: 'A classé toutes ses favorites en dehors du Top 10 officiel',
     image: '/badges/miss-meteo.svg',
     category: 'predictions'
   },
   {
     id: 'canapeEliminatoire',
-    name: 'Canapé Éliminatoire',
+    title: 'Canapé Éliminatoire',
     description: 'N\'a mis aucune finaliste dans son prono',
     image: '/badges/canape-eliminatoire.svg',
     category: 'predictions'
   },
   {
     id: 'telespectateur',
-    name: 'Téléspectateur aveugle',
+    title: 'Téléspectateur aveugle',
     description: 'A mis la Miss gagnante en dernière place de son classement',
     image: '/badges/telespectateur.svg',
     category: 'predictions'
   },
   {
     id: 'pireJury',
-    name: 'Le Pire Jury',
+    title: 'Le Pire Jury',
     description: 'A mis une candidate qui a fini dernière dans son Top 3',
     image: '/badges/pire-jury.svg',
     category: 'predictions'
   },
   {
     id: 'pariPerdu',
-    name: 'Pari Perdu',
+    title: 'Pari Perdu',
     description: 'A parié sur la mauvaise Miss du début à la fin',
     image: '/badges/pari-perdu.svg',
     category: 'predictions'

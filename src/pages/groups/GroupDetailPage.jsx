@@ -8,7 +8,7 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import UserPredictionSummary from '../../components/groups/UserPredictionSummary';
 import QuizLeaderboard from '../../components/groups/QuizLeaderboard';
 import QuizSection from '../../components/dashboard/QuizSection';
-import { Dialog } from '@headlessui/react';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import toast from 'react-hot-toast';
 import { 
   doc, 
@@ -204,9 +204,14 @@ const GroupDetailPage = () => {
         
         if (groupSnapshot.exists()) {
           const groupData = groupSnapshot.data();
+          // Récupérer le nom de l'admin
+          const adminDoc = await getDoc(doc(db, 'users', groupData.admin));
+          const adminData = adminDoc.data();
+          
           setGroup({
             id: groupSnapshot.id,
             ...groupData,
+            adminUsername: adminData?.username || adminData?.email?.split('@')[0] || 'Administrateur'
           });
           setIsAdmin(groupData.admin === user.uid);
   
@@ -432,35 +437,35 @@ const GroupDetailPage = () => {
              {/* Modal de renommage */}
             <Dialog open={showRenameModal} onClose={() => setShowRenameModal(false)}>
               <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-              <div className="fixed inset-0 flex items-center justify-center p-4">
-                <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white p-6">
-                  <Dialog.Title className="text-lg font-medium text-gray-900 mb-4">
-                    Modifier le nom du groupe
-                  </Dialog.Title>
+                <div className="fixed inset-0 flex items-center justify-center p-4">
+                  <DialogPanel className="mx-auto max-w-lg w-full rounded-lg bg-white p-8">
+                    <DialogTitle className="text-xl font-medium text-gray-900 mb-6">
+                      Modifier le nom du groupe
+                    </DialogTitle>
 
-                  <input
-                    type="text"
-                    value={newGroupName}
-                    onChange={(e) => setNewGroupName(e.target.value)}
-                    placeholder="Nouveau nom du groupe"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
-                  />
+                    <input
+                      type="text"
+                      value={newGroupName}
+                      onChange={(e) => setNewGroupName(e.target.value)}
+                      placeholder="Nouveau nom du groupe"
+                      className="w-full px-4 py-3 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                    />
 
-                  <div className="mt-6 flex justify-end space-x-3">
-                    <button
-                      onClick={() => setShowRenameModal(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                    >
-                      Annuler
-                    </button>
-                    <button
-                      onClick={handleRenameGroup}
-                      className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-md hover:from-pink-600 hover:to-purple-600"
-                    >
-                      Confirmer
-                    </button>
-                  </div>
-                </Dialog.Panel>
+                    <div className="mt-8 flex justify-end space-x-4">
+                      <button
+                        onClick={() => setShowRenameModal(false)} 
+                        className="px-6 py-2.5 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        onClick={handleRenameGroup}
+                        className="px-6 py-2.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-md hover:from-pink-600 hover:to-purple-600"
+                      >
+                        Confirmer
+                      </button>
+                    </div>
+                  </DialogPanel>
               </div>
             </Dialog>
 

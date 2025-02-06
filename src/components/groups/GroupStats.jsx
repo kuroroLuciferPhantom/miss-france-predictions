@@ -72,42 +72,46 @@ const GroupStats = ({ predictions, members }) => {
           </div>
         </div>
 
-        {/* Graphique des Miss favorites */}
-        <div>
-          <h3 className="text-base font-medium text-gray-900 mb-4">Top 5 des Miss favorites</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.topMiss}>
-                <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="votes" fill="#EC4899" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        {stats.topMiss && stats.topMiss.length > 0 && (
+          <>
+            {/* Graphique des Miss favorites */}
+            <div>
+              <h3 className="text-base font-medium text-gray-900 mb-4">Top 5 des Miss favorites</h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats.topMiss}>
+                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="votes" fill="#EC4899" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
 
-        {/* Tendances */}
-        <div className="mt-8">
-          <h3 className="text-base font-medium text-gray-900 mb-4">Tendances récentes</h3>
-          <ul className="space-y-3">
-            {stats.topMiss.slice(0, 3).map((miss, index) => (
-              <li key={miss.name} className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <span className="text-sm font-medium text-gray-900">{miss.name}</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm text-gray-500 mr-2">{miss.votes} points</span>
-                  {index === 0 ? (
-                    <ChevronUp className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-red-500" />
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+            {/* Tendances */}
+            <div className="mt-8">
+              <h3 className="text-base font-medium text-gray-900 mb-4">Tendances récentes</h3>
+              <ul className="space-y-3">
+                {stats.topMiss.slice(0, 3).map((miss, index) => (
+                  <li key={miss.name} className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-gray-900">{miss.name}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-sm text-gray-500 mr-2">{miss.votes} points</span>
+                      {index === 0 ? (
+                        <ChevronUp className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-red-500" />
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+          )}
       </div>
     </div>
   );

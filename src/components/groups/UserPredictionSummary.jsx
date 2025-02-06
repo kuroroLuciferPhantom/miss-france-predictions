@@ -6,15 +6,16 @@ const UserPredictionSummary = ({ prediction, groupId }) => {
     return (
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="border-b border-gray-200 bg-orange-50 px-4 py-3 text-orange-700">
-          Vous n'avez pas encore commencé vos pronostics dans ce groupe.
+          Vous n'avez pas encore commencé vos pronostics
         </div>
         <div className="p-4 text-center">
-          <Link 
-            to={`/group/${groupId}/prediction`}
-            className="inline-flex px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg hover:from-pink-600 hover:to-purple-600 transition-colors"
+        <Link 
+          to={`/ranking`}
+          state={{ from: location.pathname.includes('/group') ? 'group' : 'dashboard', groupId }}
+          className="inline-flex px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg hover:from-pink-600 hover:to-purple-600 transition-colors"
           >
-            Commencer mes pronostics
-          </Link>
+          Commencer mes pronostics
+        </Link>
         </div>
       </div>
     );
