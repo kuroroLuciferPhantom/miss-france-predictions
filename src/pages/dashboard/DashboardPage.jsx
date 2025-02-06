@@ -5,6 +5,7 @@ import { db } from '../../config/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import Leaderboard from '../../components/dashboard/Leaderboard';
 import QuizSection from '../../components/dashboard/QuizSection';
+import BadgesSection from '../../components/dashboard/badges/BadgesSection';
   
 const PredictionStatus = ({ prediction }) => {
   const [isSpinning, setIsSpinning] = useState(true);
@@ -391,6 +392,7 @@ const DashboardPage = () => {
         {/* Quiz Section */}
         <div className="mb-8">
           <QuizSection user={user} />
+          <BadgesSection />
         </div>
       </div>
     </div>
