@@ -20,6 +20,8 @@ import ProfilePage from './pages/profile/ProfilePage';
 import PageTransition from './components/transitions/PageTransition';
 import { AnimatePresence } from 'framer-motion';
 import QuizMiss from './pages/dashboard/QuizMiss';
+import AdminResultsPage from './pages/admin/AdminResultsPage';
+import AdminScoresPage from './pages/admin/AdminScoresPage';
 
 
 function App() {
@@ -95,6 +97,22 @@ function App() {
           <Route path="/conditions-utilisation" element={<TermsPage />} />
           <Route path="/confidentialite" element={<PolitiqueConfidentialitePage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route
+            path="/admin/results"
+            element={
+              <PrivateRoute>
+                <AdminResultsPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/scores"
+            element={
+              <PrivateRoute>
+                <AdminScoresPage />
+              </PrivateRoute>
+            }
+          />
         </Routes>
         </AnimatePresence>
       </AuthProvider>

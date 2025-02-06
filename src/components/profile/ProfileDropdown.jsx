@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { User, LogOut, ChevronDown } from 'lucide-react';
 import { useAuthContext } from '../../contexts/AuthContext';
 
 const ProfileDropdown = () => {
@@ -28,8 +28,6 @@ const ProfileDropdown = () => {
       console.error('Erreur lors de la déconnexion:', error);
     }
   };
-
-  // ... reste du code (bouton et dropdown)
 
   return (
     <div className="relative" ref={dropdownRef}>
