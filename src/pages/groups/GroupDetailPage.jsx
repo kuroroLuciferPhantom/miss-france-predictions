@@ -138,44 +138,38 @@ const GroupDetailPage = () => {
       try {
         const groupRef = doc(db, 'groups', groupId);
         const groupSnapshot = await getDoc(groupRef);
-        
+    
         if (groupSnapshot.exists()) {
           const groupData = groupSnapshot.data();
           const adminDoc = await getDoc(doc(db, 'users', groupData.admin));
           const adminData = adminDoc.data();
-        
-          // Récupérer les prédictions pour chaque membre
-          const eventDoc = await getDoc(doc(db, 'events', 'missfranceEventStatus'));
-          const eventStarted = eventDoc.exists() ? eventDoc.data().started : false;
-
-          const memberPromises = groupData.members.map(async (member) => {
-            console.log("4. Traitement du membre:", member);
-            
+    
+          // Récupérer les membres de la sous-collection 'members'
+          const membersRef = collection(db, 'groups', groupId, 'members');
+          const membersSnapshot = await getDocs(membersRef);
+          const memberPromises = Object.keys(membersRef).map(async (userId) => {
+            const memberRef = doc(db, 'groups', groupId, 'members', userId);
+            const memberSnap = await getDoc(memberRef);
+            const member = memberSnap.data();
             const predictionsQuery = query(
               collection(db, 'predictions'),
-              where('userId', '==', member.userId)
+              where('userId', '==', userId)
             );
+          
             const predictionsSnapshot = await getDocs(predictionsQuery);
             const prediction = predictionsSnapshot.docs[0]?.data();
-            
-            console.log("5. Prédiction trouvée pour", member.username, ":", prediction);
-            
+          
             return {
               ...member,
-              // Une prédiction est soumise si elle est juste complète
               hasSubmitted: prediction?.isComplete || false,
-              prediction: prediction || null,
-              predictionVisibility: prediction ? (
-                prediction.isPublic ? 'public' : 'private'
-              ) : 'none'
+              prediction: prediction || null
             };
           });
-
+    
           const updatedMembers = await Promise.all(memberPromises);
 
           // Une prédiction est valide pour les stats si elle est complète
           const completedPredictions = updatedMembers.filter(m => m.prediction?.isComplete).length;
-
           const participationRate = (completedPredictions / updatedMembers.length) * 100;
 
           // Pour l'affichage, on garde toutes les prédictions
@@ -219,45 +213,96 @@ const GroupDetailPage = () => {
   }, [groupId, user]);
 
   useEffect(() => {
-    if (!groupId) {
-      console.log("No groupId");
+    if (!groupId || !user?.uid) {
+      console.log("No groupId or user not authenticated");
       return;
     }
-        
-    const chatRef = collection(db, 'groups', groupId, 'chat');
-    const q = query(chatRef, orderBy('timestamp', 'desc'), limit(50));
   
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const newMessages = [];
-      snapshot.forEach((doc) => {
-        newMessages.push({ id: doc.id, ...doc.data() });
-      });
-      setMessages(newMessages.reverse());
-    }, (error) => {
-      console.error("Erreur détaillée lors de l'écoute des messages:", error);
-      if (error.code) console.log('Error code:', error.code);
-      if (error.message) console.log('Error message:', error.message);
-    });
+    const groupRef = doc(db, "groups", groupId);
   
-    return () => unsubscribe();
-  }, [groupId]);
+    // Vérifier si l'utilisateur est membre du groupe avant de récupérer les messages
+    getDoc(groupRef).then(async (groupSnap) => {
+      if (!groupSnap.exists()) {
+        console.log("Group does not exist");
+        return;
+      }
 
+      const groupData = groupSnap.data();
+      
+      // Récupérer la sous-collection "members" pour vérifier si l'utilisateur en fait partie
+      const membersRef = collection(db, "groups", groupId, "members");
+      const memberSnap = await getDocs(membersRef);
+
+      // Vérifier si l'utilisateur est dans la liste des membres
+      const isMember = memberSnap.docs.some((doc) => doc.id === user.uid);
+
+      if (groupData.admin !== user.uid && !isMember) {
+        console.log("User is not a member of this group");
+        return;
+      }
+
+      // Si l'utilisateur est membre, on récupère les messages
+      const chatRef = collection(db, "groups", groupId, "chat");
+      const q = query(chatRef, orderBy("timestamp", "desc"), limit(50));
+
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const newMessages = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setMessages(newMessages.reverse());
+        },
+        (error) => {
+          console.error("Erreur détaillée lors de l'écoute des messages:", error);
+          if (error.code) console.log("Error code:", error.code);
+          if (error.message) console.log("Error message:", error.message);
+        }
+      );
+
+    return () => unsubscribe();
+});
+
+
+  }, [groupId, user?.uid]);
+  
   const handleSendMessage = async (text) => {
+    if (!groupId || !user?.uid) {
+      console.log("No groupId or user not authenticated");
+      return;
+    }
+  
     try {
-      const messagesRef = collection(db, 'groups', groupId, 'chat');
+      const groupRef = doc(db, "groups", groupId);
+      const groupSnap = await getDoc(groupRef);
+  
+      if (!groupSnap.exists()) {
+        console.log("Group does not exist");
+        return;
+      }
+  
+      const groupData = groupSnap.data();
+  
+      if (groupData.admin !== user.uid && !groupData.members?.[user.uid]) {
+        console.log("User is not a member of this group");
+        return;
+      }
+  
+      const messagesRef = collection(db, "groups", groupId, "chat");
       await addDoc(messagesRef, {
         userId: user.uid,
-        username: user.displayName || user.email.split('@')[0],
+        username: user.displayName || user.email.split("@")[0],
         text,
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
       });
     } catch (error) {
-      console.error('Erreur détaillée:', error);
-      // Log plus détaillé de l'erreur
-      if (error.code) console.log('Error code:', error.code);
-      if (error.message) console.log('Error message:', error.message);
+      console.error("Erreur détaillée:", error);
+      if (error.code) console.log("Error code:", error.code);
+      if (error.message) console.log("Error message:", error.message);
     }
   };
+  
 
   if (!group) {
     return <div>Chargement...</div>;

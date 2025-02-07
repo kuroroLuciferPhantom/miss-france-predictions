@@ -243,19 +243,29 @@ const DashboardPage = () => {
         // Récupérer les groupes de l'utilisateur
         const groupsSnap = await getDocs(collection(db, 'groups'));
         const userGroups = await Promise.all(groupsSnap.docs
-          .filter(doc => doc.data().members.some(member => member.userId === user.uid))
+          .filter(doc => {
+            const groupData = doc.data();
+
+            // Vérifier si l'utilisateur est dans la sous-collection "members"
+            return getDoc(doc(db, 'groups', doc.id, 'members', user.uid))
+              .then(memberSnap => memberSnap.exists());
+          })
           .map(async (doc) => {
             const groupData = doc.data();
 
             // Pour chaque membre, vérifier sa prédiction
-            const memberPromises = groupData.members.map(async (member) => {
+            const memberPromises = Object.keys(groupData.members).map(async (userId) => {
+              const memberRef = doc(db, 'groups', doc.id, 'members', userId);
+              const memberSnap = await getDoc(memberRef);
+
+              const member = memberSnap.data();
               const predictionsQuery = query(
                 collection(db, 'predictions'),
-                where('userId', '==', member.userId)
+                where('userId', '==', userId)
               );
               const predictionsSnapshot = await getDocs(predictionsQuery);
               const prediction = predictionsSnapshot.docs[0]?.data();
-              
+
               return {
                 ...member,
                 hasSubmitted: prediction?.isComplete || false
@@ -281,6 +291,7 @@ const DashboardPage = () => {
           const userRank = Math.floor(Math.random() * group.members.length) + 1; // Pour l'exemple
           return { ...group };
         }));
+
 
         setGroups(groupsWithRanks);
       } catch (error) {

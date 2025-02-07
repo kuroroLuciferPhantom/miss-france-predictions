@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../config/firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, setDoc } from 'firebase/firestore';
 
 const JoinGroupPage = () => {
   const [groupCode, setGroupCode] = useState('');
@@ -19,42 +19,50 @@ const JoinGroupPage = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
+  
     try {
       // Recherche du groupe avec le code
       const groupQuery = query(
         collection(db, 'groups'),
         where('inviteCode', '==', groupCode.toUpperCase())
       );
-
+  
       const querySnapshot = await getDocs(groupQuery);
-
+  
       if (querySnapshot.empty) {
         setError('Code de groupe invalide');
         setLoading(false);
         return;
       }
-
+  
       const groupDoc = querySnapshot.docs[0];
       const groupData = groupDoc.data();
-
+  
+      // Log pour vérifier la structure de 'members'
+      console.log('Données du groupe:', groupData);
+  
       // Vérifier si l'utilisateur est déjà membre
-      if (groupData.memberIds?.includes(user.uid)) {
+      if (groupData.members?.[user.uid]) {
         setError('Vous êtes déjà membre de ce groupe');
         setLoading(false);
         return;
       }
-
-      // Ajouter l'utilisateur au groupe
-      await updateDoc(doc(db, 'groups', groupDoc.id), {
-        members: [...(groupData.members || []), {
-          userId: user.uid,
-          username: user.username || user.email.split('@')[0],
-          role: 'member',
-          joinedAt: new Date().toISOString()
-        }]
+  
+      // Ajouter l'utilisateur dans la map des membres
+      console.log("Vérification des données entrantes :");
+  console.log("groupData.members est un objet :", typeof groupData.members === 'object');
+  console.log("user.uid est une clé valide :", user.uid);
+      // Ajouter un membre à la sous-collection "members"
+      const memberRef = doc(db, 'groups', groupDoc.id, 'members', user.uid);
+      await setDoc(memberRef, {
+        username: user.username || user.email.split('@')[0],
+        role: 'member',
+        joinedAt: new Date().toISOString()
       });
-
+  
+      // Log pour confirmer l'ajout du membre
+      console.log('Utilisateur ajouté au groupe:', user.uid);
+  
       // Redirection vers le groupe
       navigate(`/group/${groupDoc.id}`);
     } catch (err) {
@@ -64,6 +72,8 @@ const JoinGroupPage = () => {
       setLoading(false);
     }
   };
+  
+  
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -37,13 +37,15 @@ const CreateGroupPage = () => {
         description: groupData.description,
         inviteCode,
         admin: user.uid,
-        createdAt: new Date().toISOString(),
-        members: [{
-          userId: user.uid,
-          username: user.username || user.email.split('@')[0],
-          role: 'admin',
-          joinedAt: new Date().toISOString()
-        }]
+        createdAt: new Date().toISOString()
+      });
+
+      // Créer la sous-collection "members" pour le groupe
+      const memberRef = doc(db, 'groups', inviteCode, 'members', user.uid);
+      await setDoc(memberRef, {
+        username: user.username || user.email.split('@')[0],
+        role: 'admin',
+        joinedAt: new Date().toISOString()
       });
 
       // Rediriger vers la page du groupe

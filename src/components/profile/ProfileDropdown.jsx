@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, LogOut, ChevronDown } from 'lucide-react';
 import { useAuthContext } from '../../contexts/AuthContext';
 
-const ProfileDropdown = () => {
+const ProfileDropdown = ({ isMobile }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const { user, logout } = useAuthContext();
@@ -22,12 +22,39 @@ const ProfileDropdown = () => {
 
   const handleSignOut = async () => {
     try {
-      await logout();  // on utilise la fonction logout
+      await logout();
       navigate('/login');
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
     }
   };
+
+  if (isMobile) {
+    return (
+      <div className="space-y-1 py-2" ref={dropdownRef}>
+        <div className="px-4 py-2 text-sm text-gray-700">
+          <div className="font-medium mb-1">{user?.username || user?.email?.split('@')[0]}</div>
+          <div className="text-gray-500 text-xs">{user?.email}</div>
+        </div>
+        <Link
+          to="/profile"
+          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+        >
+          <User className="w-4 h-4 mr-3" />
+          Mon profil
+        </Link>
+        <div className="pt-1 mt-1 border-t border-gray-200">
+          <button
+            onClick={handleSignOut}
+            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+          >
+            <LogOut className="w-4 h-4 mr-3" />
+            Déconnexion
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>
