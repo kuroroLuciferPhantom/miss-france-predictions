@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Users, Crown, Percent, ChevronUp, ChevronDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-const GroupStats = ({ predictions, members }) => {
+const GroupStats = ({ predictions, members, group }) => {
   const stats = useMemo(() => {
     // Calcul du taux de participation
     const participationRate = (predictions.filter(p => p.top5.length > 0).length / members.length) * 100;
@@ -54,7 +54,7 @@ const GroupStats = ({ predictions, members }) => {
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-500">Participation</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {Math.round(stats.participationRate)}%
+                  {Math.round(group?.stats?.participationRate || 0)}%
                 </p>
               </div>
             </div>

@@ -197,46 +197,77 @@ const GroupDetailPage = () => {
   useEffect(() => {
     const fetchGroupData = async () => {
       try {
-        // Récupérer le groupe
         const groupRef = doc(db, 'groups', groupId);
         const groupSnapshot = await getDoc(groupRef);
-        console.log("Group Data:", groupSnapshot.data());
         
         if (groupSnapshot.exists()) {
           const groupData = groupSnapshot.data();
-          // Récupérer le nom de l'admin
+          console.log("1. Données du groupe brutes:", groupData);
+          
           const adminDoc = await getDoc(doc(db, 'users', groupData.admin));
           const adminData = adminDoc.data();
+          console.log("2. Données de l'admin:", adminData);
+        
+          // Récupérer les prédictions pour chaque membre
+          console.log("3. Liste des membres avant traitement:", groupData.members);
           
+          const eventDoc = await getDoc(doc(db, 'events', 'missfranceEventStatus'));
+          const eventStarted = eventDoc.exists() ? eventDoc.data().started : false;
+
+          const memberPromises = groupData.members.map(async (member) => {
+            const predictionsQuery = query(
+              collection(db, 'predictions'),
+              where('userId', '==', member.userId)
+            );
+            const predictionsSnapshot = await getDocs(predictionsQuery);
+            const prediction = predictionsSnapshot.docs[0]?.data();
+            
+            console.log("5. Prédiction trouvée pour", member.username, ":", prediction);
+            
+            // Une prédiction compte comme "soumise" si elle est complète ET (publique OU émission commencée)
+            const validPrediction = prediction?.isComplete && (prediction?.isPublic || eventStarted);
+            
+            return {
+              ...member,
+              hasSubmitted: validPrediction,
+              prediction: prediction || null, // On garde toutes les prédictions pour l'affichage
+              predictionVisibility: prediction ? (
+                prediction.isPublic ? 'public' : 'private'
+              ) : 'none'
+            };
+          });
+
+          const updatedMembers = await Promise.all(memberPromises);
+          
+          // Ne compter que les prédictions valides pour les stats
+          const completedPredictions = updatedMembers.filter(m => m.hasSubmitted).length;
+          const participationRate = (completedPredictions / updatedMembers.length) * 100;
+
+          // Mettre à jour le groupe
           setGroup({
             id: groupSnapshot.id,
             ...groupData,
-            adminUsername: adminData?.username || adminData?.email?.split('@')[0] || 'Administrateur'
+            members: updatedMembers,
+            adminUsername: adminData?.username,
+            stats: {
+              completedPredictions,
+              participationRate,
+              eventStarted
+            }
           });
-          setIsAdmin(groupData.admin === user.uid);
-  
-          // Récupérer les prédictions de l'utilisateur
-          const predictionsRef = collection(db, 'predictions');
-          const q = query(
-            predictionsRef,
-            where('groupId', '==', groupId),
-            where('userId', '==', user.uid)
-          );
-          const predictionsSnapshot = await getDocs(q);
-          
-          if (!predictionsSnapshot.empty) {
-            const prediction = predictionsSnapshot.docs[0].data();
-            setUserHasPredicted(true);
-            // Mettre à jour les prédictions avec la prédiction de l'utilisateur
-            setPredictions([prediction]);
-          } else {
-            setUserHasPredicted(false);
-            setPredictions([]);
-          }
 
-          const quizDoc = await getDoc(doc(db, 'quizResults', user.uid));
-            setHasCompletedQuiz(quizDoc.exists());
-          }
+          // Pour l'affichage, on garde toutes les prédictions
+          const allPredictions = updatedMembers
+            .filter(m => m.prediction)
+            .map(m => ({
+              ...m.prediction,
+              username: m.username,
+              visibility: m.predictionVisibility
+            }));
+
+          setPredictions(allPredictions);
+          setUserHasPredicted(allPredictions.some(p => p.userId === user.uid));
+        }
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
       }
@@ -252,17 +283,13 @@ const GroupDetailPage = () => {
       console.log("No groupId");
       return;
     }
-    
-    console.log("Setting up chat listener for group:", groupId);
-    
+        
     const chatRef = collection(db, 'groups', groupId, 'chat');
     const q = query(chatRef, orderBy('timestamp', 'desc'), limit(50));
   
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      console.log("Chat snapshot received:", snapshot.size, "messages");
       const newMessages = [];
       snapshot.forEach((doc) => {
-        console.log("Message data:", doc.data());
         newMessages.push({ id: doc.id, ...doc.data() });
       });
       setMessages(newMessages.reverse());
@@ -350,6 +377,7 @@ const GroupDetailPage = () => {
             <GroupStats 
               predictions={predictions}
               members={group.members}
+              group={group}
             />
           </>
         );

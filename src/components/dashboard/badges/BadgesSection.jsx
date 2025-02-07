@@ -3,45 +3,25 @@ import { db } from '../../../config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useAuthContext } from '../../../contexts/AuthContext';
 
+//TODO être arrivé 1er dans un groupe
 const BADGES_CONFIG = [
   {
-    id: 'missFound2024',
-    title: 'Miss France 2024',
-    description: 'A deviné Miss France 2024',
-    image: '/badges/miss2024.svg',
-    category: 'predictions'
-  },
-  {
-    id: 'missFound2025',
-    title: 'Miss France 2025',
-    description: 'A deviné Miss France 2025',
-    image: '/badges/miss2025.svg',
-    category: 'predictions'
-  },
-  {
     id: 'missFound2026',
-    title: 'Miss France 2026',
+    title: 'Miss Irma',
     description: 'A deviné Miss France 2026',
-    image: '/badges/miss2026.svg',
+    image: '/badges/badge-missWin-min.png',
     category: 'predictions'
   },
   {
     id: 'quizPerfect',
     title: 'Expert Miss France',
     description: '20/20 au quiz culture Miss France',
-    image: '/badges/quiz-perfect.svg',
+    image: '/badges/badge-perfectQuiz-min.png',
     category: 'quiz'
   },
   {
-    id: 'madameIrma',
-    title: 'Madame Irma',
-    description: 'A trouvé la nouvelle Miss France',
-    image: '/badges/madame-irma.svg',
-    category: 'predictions'
-  },
-  {
-    id: 'laVoixAParle',
-    title: 'La Voix a parlé', 
+    id: 'abusey',
+    title: 'Abuseeeyyyy', 
     description: 'A deviné le Top 5 exact',
     image: '/badges/la-voix.svg',
     category: 'predictions'
@@ -54,7 +34,7 @@ const BADGES_CONFIG = [
     category: 'predictions'  
   },
   {
-    id: 'missNostradamus',
+    id: 'misstradamus',
     title: 'Miss Nostradamus',
     description: 'A trouvé à l\'avance la majorité du Top 10',
     image: '/badges/nostradamus.svg',
@@ -65,13 +45,6 @@ const BADGES_CONFIG = [
     title: 'Coup de Foudre à la Couronne',
     description: 'A placé la future Miss France en première position dès son premier prono',
     image: '/badges/coup-foudre.svg',
-    category: 'predictions'
-  },
-  {
-    id: 'goldenBuzzer',
-    title: 'Miss Golden Buzzer',
-    description: 'A mis une candidate sous-estimée dans son Top 3, et elle a fini sur le podium',
-    image: '/badges/golden-buzzer.svg',
     category: 'predictions'
   },
   {
@@ -89,24 +62,10 @@ const BADGES_CONFIG = [
     category: 'predictions'
   },
   {
-    id: 'bourreauMiss',
-    title: 'Bourreau des Miss',
-    description: 'A descendu une future gagnante dans ses commentaires',
-    image: '/badges/bourreau-miss.svg',
-    category: 'social'
-  },
-  {
     id: 'missMeteo',
     title: 'Miss Météo en PLS',
-    description: 'A classé toutes ses favorites en dehors du Top 10 officiel',
+    description: 'A classé toutes ses favorites en dehors du Top 15',
     image: '/badges/miss-meteo.svg',
-    category: 'predictions'
-  },
-  {
-    id: 'canapeEliminatoire',
-    title: 'Canapé Éliminatoire',
-    description: 'N\'a mis aucune finaliste dans son prono',
-    image: '/badges/canape-eliminatoire.svg',
     category: 'predictions'
   },
   {
@@ -123,13 +82,6 @@ const BADGES_CONFIG = [
     image: '/badges/pire-jury.svg',
     category: 'predictions'
   },
-  {
-    id: 'pariPerdu',
-    title: 'Pari Perdu',
-    description: 'A parié sur la mauvaise Miss du début à la fin',
-    image: '/badges/pari-perdu.svg',
-    category: 'predictions'
-  }
 ];
 
 const Badge = ({ badge, isUnlocked }) => {
@@ -141,21 +93,15 @@ const Badge = ({ badge, isUnlocked }) => {
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      <div 
-        className={`w-24 h-24 rounded-full flex items-center justify-center ${
-          isUnlocked 
-            ? 'bg-gradient-to-br from-pink-500 to-purple-500' 
-            : 'bg-gray-200'
-        } p-1`}
-      >
+      
         <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
           <img 
-            src={badge.image} 
+            src={`/images/${badge.image}`} 
             alt={badge.title}
-            className={`w-16 h-16 ${!isUnlocked && 'opacity-40 grayscale'}`}
+            className={`w-32 h-32 ${!isUnlocked && 'opacity-40 grayscale'}`}
           />
         </div>
-      </div>
+      
       
       {/* Tooltip */}
       {showTooltip && (
