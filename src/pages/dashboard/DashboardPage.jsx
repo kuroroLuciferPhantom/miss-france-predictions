@@ -68,85 +68,111 @@ const PredictionStatus = ({ prediction }) => {
 };
 
 const PredictionSummary = ({ prediction }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
   if (!prediction) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold">Mes pronostics</h3>
-        <button
-          onClick={() => navigate('/predictions/edit')}
-          className="text-pink-500 hover:text-pink-600 font-medium text-sm"
-        >
-          Modifier
-        </button>
-      </div>
-      <div className="space-y-6">
-        {/* Top 3 */}
+    <div className="bg-white rounded-xl shadow">
+      {/* Header de l'accordéon toujours visible */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+      >
         <div>
-          <h4 className="text-sm font-medium text-gray-500 mb-3">TOP 3</h4>
-          <div className="space-y-2">
-            {prediction.top3?.map((miss, index) => (
-              <div 
-                key={miss.id} 
-                className="flex items-center justify-between bg-pink-50 p-3 rounded-lg"
-              >
-                <div>
-                  <div className="font-medium text-pink-700">{miss.name}</div>
-                  <div className="text-sm text-pink-600">{miss.region}</div>
-                </div>
-                <div className="text-sm font-medium text-pink-500">
-                  {index === 0 && "Miss France"}
-                  {index === 1 && "1ère Dauphine"}
-                  {index === 2 && "2ème Dauphine"}
-                </div>
-              </div>
-            ))}
-          </div>
+          <h3 className="text-xl font-bold text-gray-900">Mes pronostics</h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Cliquez pour {isOpen ? 'masquer' : 'voir'} vos pronostics
+          </p>
         </div>
-
-        {/* Top 5 */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-500 mb-3">TOP 5</h4>
-          <div className="space-y-2">
-            {prediction.top5?.map((miss, index) => (
-              <div 
-                key={miss.id} 
-                className="flex items-center justify-between bg-purple-50 p-3 rounded-lg"
-              >
-                <div>
-                  <div className="font-medium text-purple-700">{miss.name}</div>
-                  <div className="text-sm text-purple-600">{miss.region}</div>
-                </div>
-                <div className="text-sm font-medium text-purple-500">
-                  {index === 0 && "3ème Dauphine"}
-                  {index === 1 && "4ème Dauphine"}
-                </div>
-              </div>
-            ))}
+        <div className="flex items-center">
+          <div className="text-sm text-gray-600 mr-3">
+            {(prediction.top3?.length || 0) + 
+             (prediction.top5?.length || 0) + 
+             (prediction.qualified?.length || 0)}/15 pronostics
           </div>
+          <svg
+            className={`w-5 h-5 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
+      </button>
 
-        {/* Qualifiées */}
-        {prediction.qualified && prediction.qualified.length > 0 && (
-          <div>
-            <h4 className="text-sm font-medium text-gray-500 mb-3">
-              Autres qualifiées ({prediction.qualified.length})
-            </h4>
-            <div className="grid grid-cols-2 gap-2">
-              {prediction.qualified?.map((miss) => (
-                <div 
-                  key={miss.id} 
-                  className="bg-gray-50 p-3 rounded-lg"
-                >
-                  <div className="font-medium text-gray-700">{miss.name}</div>
-                  <div className="text-sm text-gray-600">{miss.region}</div>
-                </div>
-              ))}
+      {/* Contenu de l'accordéon */}
+      {isOpen && (
+        <div className="p-6 border-t">
+          <div className="space-y-6">
+            {/* Top 3 */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-500 mb-3">TOP 3</h4>
+              <div className="space-y-2">
+                {prediction.top3?.map((miss, index) => (
+                  <div 
+                    key={miss.id} 
+                    className="flex items-center justify-between bg-pink-50 p-3 rounded-lg"
+                  >
+                    <div>
+                      <div className="font-medium text-pink-700">{miss.name}</div>
+                      <div className="text-sm text-pink-600">{miss.region}</div>
+                    </div>
+                    <div className="text-sm font-medium text-pink-500">
+                      {index === 0 && "Miss France"}
+                      {index === 1 && "1ère Dauphine"}
+                      {index === 2 && "2ème Dauphine"}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {/* Top 5 */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-500 mb-3">TOP 5</h4>
+              <div className="space-y-2">
+                {prediction.top5?.map((miss, index) => (
+                  <div 
+                    key={miss.id} 
+                    className="flex items-center justify-between bg-purple-50 p-3 rounded-lg"
+                  >
+                    <div>
+                      <div className="font-medium text-purple-700">{miss.name}</div>
+                      <div className="text-sm text-purple-600">{miss.region}</div>
+                    </div>
+                    <div className="text-sm font-medium text-purple-500">
+                      {index === 0 && "3ème Dauphine"}
+                      {index === 1 && "4ème Dauphine"}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Qualifiées */}
+            {prediction.qualified && prediction.qualified.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 mb-3">
+                  Autres qualifiées ({prediction.qualified.length})
+                </h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {prediction.qualified?.map((miss) => (
+                    <div 
+                      key={miss.id} 
+                      className="bg-gray-50 p-3 rounded-lg"
+                    >
+                      <div className="font-medium text-gray-700">{miss.name}</div>
+                      <div className="text-sm text-gray-600">{miss.region}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -216,18 +242,44 @@ const DashboardPage = () => {
 
         // Récupérer les groupes de l'utilisateur
         const groupsSnap = await getDocs(collection(db, 'groups'));
-        const userGroups = groupsSnap.docs
+        const userGroups = await Promise.all(groupsSnap.docs
           .filter(doc => doc.data().members.some(member => member.userId === user.uid))
-          .map(doc => ({
-            id: doc.id,
-            ...doc.data()
+          .map(async (doc) => {
+            const groupData = doc.data();
+
+            // Pour chaque membre, vérifier sa prédiction
+            const memberPromises = groupData.members.map(async (member) => {
+              const predictionsQuery = query(
+                collection(db, 'predictions'),
+                where('userId', '==', member.userId)
+              );
+              const predictionsSnapshot = await getDocs(predictionsQuery);
+              const prediction = predictionsSnapshot.docs[0]?.data();
+              
+              return {
+                ...member,
+                hasSubmitted: prediction?.isComplete || false
+              };
+            });
+
+            const updatedMembers = await Promise.all(memberPromises);
+            const completedPredictions = updatedMembers.filter(m => m.hasSubmitted).length;
+
+            return {
+              id: doc.id,
+              ...groupData,
+              members: updatedMembers,
+              predictionStats: {
+                completedPredictions
+              }
+            };
           }));
-        
+
         // Calculer le classement pour chaque groupe
         const groupsWithRanks = await Promise.all(userGroups.map(async (group) => {
           // Logique de calcul du classement à implémenter
           const userRank = Math.floor(Math.random() * group.members.length) + 1; // Pour l'exemple
-          return { ...group, userRank };
+          return { ...group };
         }));
 
         setGroups(groupsWithRanks);

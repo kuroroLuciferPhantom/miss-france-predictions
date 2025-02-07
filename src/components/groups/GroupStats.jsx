@@ -2,34 +2,35 @@ import React, { useMemo } from 'react';
 import { Users, Crown, Percent, ChevronUp, ChevronDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-const GroupStats = ({ predictions, members, group }) => {
+const GroupStats = ({ predictions, members, group, eventStarted }) => {
   const stats = useMemo(() => {
-    // Calcul du taux de participation
-    const participationRate = (predictions.filter(p => p.top5.length > 0).length / members.length) * 100;
-
-    // Calcul des Miss favorites
+    // Filtre pour n'utiliser que les prédictions valides
+    const validPredictions = predictions.filter(p => 
+      p.isComplete && (p.isPublic || eventStarted)
+    );
+  
+    // Le reste du calcul utilise validPredictions au lieu de predictions
     const missVotes = {};
-    predictions.forEach(prediction => {
+    validPredictions.forEach(prediction => {
       prediction.top5.forEach((miss, index) => {
-        const points = 5 - index; // 5 points pour la 1ère, 4 pour la 2ème, etc.
+        const points = 5 - index;
         missVotes[miss.name] = (missVotes[miss.name] || 0) + points;
       });
       prediction.qualifiees?.forEach(miss => {
         missVotes[miss.name] = (missVotes[miss.name] || 0) + 1;
       });
     });
-
+  
     // Trier les Miss par nombre de points
     const topMiss = Object.entries(missVotes)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
       .map(([name, votes]) => ({ name, votes }));
-
+  
     return {
-      participationRate,
       topMiss
     };
-  }, [predictions, members]);
+  }, [predictions, eventStarted]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm">

@@ -7,6 +7,7 @@ import { db } from '../../config/firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import UserPredictionSummary from '../../components/groups/UserPredictionSummary';
 import QuizLeaderboard from '../../components/groups/QuizLeaderboard';
+import Chat from '../../components/groups/Chat';
 import QuizSection from '../../components/dashboard/QuizSection';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import toast from 'react-hot-toast';
@@ -54,68 +55,6 @@ const ShareInviteCode = ({ code }) => {
           {copied ? 'Copié !' : 'Copier'}
         </button>
       </div>
-    </div>
-  );
-};
-
-const Chat = ({ messages, onSendMessage }) => {
-  const [newMessage, setNewMessage] = useState('');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (newMessage.trim()) {
-      onSendMessage(newMessage);
-      setNewMessage('');
-    }
-  };
-
-  const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '';
-    // Si c'est un timestamp Firestore
-    if (timestamp && timestamp.toDate) {
-      return timestamp.toDate().toLocaleTimeString();
-    }
-    // Si c'est déjà une date
-    if (timestamp instanceof Date) {
-      return timestamp.toLocaleTimeString();
-    }
-    // Si c'est un timestamp en string
-    return new Date(timestamp).toLocaleTimeString();
-  };
-
-  return (
-    <div className="bg-white rounded-lg shadow p-4 flex flex-col h-[600px]">
-      <h2 className="text-xl font-semibold mb-4">Chat du groupe</h2>
-      
-      <div className="flex-grow overflow-y-auto space-y-4 mb-4">
-        {messages.map((message) => (
-          <div key={message.id} className="flex flex-col">
-            <div className="flex items-baseline space-x-2">
-              <span className="font-medium">{message.username}</span>
-              <span className="text-xs text-gray-500">
-                {formatTimestamp(message.timestamp)}
-              </span>
-            </div>
-            <p className="mt-1">{message.text}</p>
-          </div>
-        ))}
-      </div>
-
-      <form onSubmit={handleSubmit} className="flex gap-2 mt-auto">
-        <input
-          type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Votre message..."
-          className="flex-grow px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500"
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 transition-colors"
-        >
-          Envoyer
-        </button>
-      </form>
     </div>
   );
 };
@@ -202,19 +141,16 @@ const GroupDetailPage = () => {
         
         if (groupSnapshot.exists()) {
           const groupData = groupSnapshot.data();
-          console.log("1. Données du groupe brutes:", groupData);
-          
           const adminDoc = await getDoc(doc(db, 'users', groupData.admin));
           const adminData = adminDoc.data();
-          console.log("2. Données de l'admin:", adminData);
         
           // Récupérer les prédictions pour chaque membre
-          console.log("3. Liste des membres avant traitement:", groupData.members);
-          
           const eventDoc = await getDoc(doc(db, 'events', 'missfranceEventStatus'));
           const eventStarted = eventDoc.exists() ? eventDoc.data().started : false;
 
           const memberPromises = groupData.members.map(async (member) => {
+            console.log("4. Traitement du membre:", member);
+            
             const predictionsQuery = query(
               collection(db, 'predictions'),
               where('userId', '==', member.userId)
@@ -224,13 +160,11 @@ const GroupDetailPage = () => {
             
             console.log("5. Prédiction trouvée pour", member.username, ":", prediction);
             
-            // Une prédiction compte comme "soumise" si elle est complète ET (publique OU émission commencée)
-            const validPrediction = prediction?.isComplete && (prediction?.isPublic || eventStarted);
-            
             return {
               ...member,
-              hasSubmitted: validPrediction,
-              prediction: prediction || null, // On garde toutes les prédictions pour l'affichage
+              // Une prédiction est soumise si elle est juste complète
+              hasSubmitted: prediction?.isComplete || false,
+              prediction: prediction || null,
               predictionVisibility: prediction ? (
                 prediction.isPublic ? 'public' : 'private'
               ) : 'none'
@@ -238,23 +172,11 @@ const GroupDetailPage = () => {
           });
 
           const updatedMembers = await Promise.all(memberPromises);
-          
-          // Ne compter que les prédictions valides pour les stats
-          const completedPredictions = updatedMembers.filter(m => m.hasSubmitted).length;
-          const participationRate = (completedPredictions / updatedMembers.length) * 100;
 
-          // Mettre à jour le groupe
-          setGroup({
-            id: groupSnapshot.id,
-            ...groupData,
-            members: updatedMembers,
-            adminUsername: adminData?.username,
-            stats: {
-              completedPredictions,
-              participationRate,
-              eventStarted
-            }
-          });
+          // Une prédiction est valide pour les stats si elle est complète
+          const completedPredictions = updatedMembers.filter(m => m.prediction?.isComplete).length;
+
+          const participationRate = (completedPredictions / updatedMembers.length) * 100;
 
           // Pour l'affichage, on garde toutes les prédictions
           const allPredictions = updatedMembers
@@ -264,6 +186,24 @@ const GroupDetailPage = () => {
               username: m.username,
               visibility: m.predictionVisibility
             }));
+
+          // Une prédiction est valide pour les tendances/favorites si elle est publique ou si l'émission a commencé
+          const validPredictionsForStats = allPredictions.filter(p => 
+            p.isComplete && (p.isPublic || eventStarted)
+          );
+
+          setGroup({
+            id: groupSnapshot.id,
+            ...groupData,
+            members: updatedMembers,
+            adminUsername: adminData?.username,
+            stats: {
+              completedPredictions,
+              participationRate: participationRate || 0,
+              eventStarted,
+              validPredictions: validPredictionsForStats
+            }
+          });
 
           setPredictions(allPredictions);
           setUserHasPredicted(allPredictions.some(p => p.userId === user.uid));
@@ -305,12 +245,6 @@ const GroupDetailPage = () => {
   const handleSendMessage = async (text) => {
     try {
       const messagesRef = collection(db, 'groups', groupId, 'chat');
-      console.log("Sending message:", {
-        userId: user.uid,
-        username: user.displayName || user.email.split('@')[0],
-        text,
-        timestamp: serverTimestamp()
-      });
       await addDoc(messagesRef, {
         userId: user.uid,
         username: user.displayName || user.email.split('@')[0],
@@ -378,22 +312,29 @@ const GroupDetailPage = () => {
               predictions={predictions}
               members={group.members}
               group={group}
+              eventStarted={group.stats.eventStarted}  // Ajouter cette prop
             />
           </>
         );
-      case 'predictions':
-        return (
-          <PredictionsList 
-            groupId={groupId}
-          />
-        );
-      case 'chat':
-        return (
-          <Chat 
-            messages={messages} 
-            onSendMessage={handleSendMessage}
-          />
-        );
+        case 'predictions':
+          console.log("Rendering predictions tab with:", {
+            predictions: predictions,
+            eventStarted: group.stats.eventStarted,
+            totalPredictions: predictions?.length
+          });
+          return (
+            <PredictionsList 
+              predictions={predictions}
+              eventStarted={group.stats.eventStarted}
+            />
+          );
+        case 'chat':
+          return (
+            <Chat 
+              messages={messages}
+              onSendMessage={handleSendMessage}
+            />
+          );
         case 'quiz':
           return (
             <div>
