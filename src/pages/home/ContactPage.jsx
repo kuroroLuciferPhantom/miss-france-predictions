@@ -39,65 +39,65 @@ const ContactPage = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md mt-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">Contact</h1>
-      <p className="text-gray-600 mb-6 text-center">
+    <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md mt-8">
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">Contact</h1>
+      <p className="text-gray-600 dark:text-gray-300 mb-6 text-center">
         Une question ou une demande ? Contactez-nous via ce formulaire.
       </p>
-
+  
       {success && (
-        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+        <div className="mb-4 p-3 bg-green-100 dark:bg-green-900/20 border border-green-400 dark:border-green-800 text-green-700 dark:text-green-400 rounded">
           ✅ Votre message a bien été envoyé !
         </div>
       )}
-
+  
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Champ Nom */}
         <div>
-          <label className="block text-gray-700 font-semibold mb-2">Nom</label>
+          <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Nom</label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
             placeholder="Votre nom"
           />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+          {errors.name && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.name}</p>}
         </div>
-
+  
         {/* Champ Email */}
         <div>
-          <label className="block text-gray-700 font-semibold mb-2">Email</label>
+          <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Email</label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
             placeholder="Votre email"
           />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          {errors.email && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.email}</p>}
         </div>
-
+  
         {/* Champ Message */}
         <div>
-          <label className="block text-gray-700 font-semibold mb-2">Message</label>
+          <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Message</label>
           <textarea
             name="message"
             value={formData.message}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
             rows="4"
             placeholder="Votre message..."
           ></textarea>
-          {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
+          {errors.message && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.message}</p>}
         </div>
-
+  
         {/* Bouton Envoyer */}
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white font-semibold py-2 rounded-md hover:bg-blue-700 transition"
+          className="w-full bg-blue-600 dark:bg-blue-700 text-white font-semibold py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition"
         >
           Envoyer
         </button>

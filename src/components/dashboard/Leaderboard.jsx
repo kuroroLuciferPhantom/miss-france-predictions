@@ -63,9 +63,9 @@ const Leaderboard = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-xl font-bold text-gray-900">Classement général</h2>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Classement général</h2>
         
         {/* Filtres */}
         <div className="mt-4 flex gap-4">
@@ -74,56 +74,39 @@ const Leaderboard = () => {
             placeholder="Rechercher un joueur..."
             value={filters.search}
             onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-            className="px-4 py-2 rounded-lg border-gray-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200"
+            className="px-4 py-2 rounded-lg border-gray-200 dark:border-gray-700 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:border-pink-500 dark:focus:border-pink-400 focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-900"
           />
-          <select
-            value={filters.region}
-            onChange={(e) => setFilters(prev => ({ ...prev, region: e.target.value }))}
-            className="px-4 py-2 rounded-lg border-gray-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200"
-          >
-            <option value="all">Toutes les régions</option>
-            <option value="nord">Nord</option>
-            <option value="sud">Sud</option>
-            {/* Ajouter les autres régions */}
-          </select>
         </div>
       </div>
-
+  
       {/* Table des scores */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Position
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Joueur
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Score
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Pronostics corrects
-              </th>
+              {['Position', 'Joueur', 'Score', 'Pronostics corrects'].map((header) => (
+                <th key={header} className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  {header}
+                </th>
+              ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {players.map((player, index) => (
               <tr key={player.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">
                     {index + 1}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {player.username || player.email}
                       </div>
                       {player.region && (
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                           {player.region}
                         </div>
                       )}
@@ -131,12 +114,12 @@ const Leaderboard = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">
                     {player.score || 0} pts
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
                     {player.correctPredictions || 0}
                   </span>
                 </td>
@@ -145,14 +128,14 @@ const Leaderboard = () => {
           </tbody>
         </table>
       </div>
-
+  
       {/* Footer avec pagination */}
       {hasMore && (
-        <div className="px-4 py-3 border-t border-gray-200">
+        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={handleLoadMore}
             disabled={loading}
-            className="w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+            className="w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 hover:from-pink-600 hover:to-purple-600 dark:hover:from-pink-700 dark:hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 dark:focus:ring-pink-400 disabled:opacity-50"
           >
             {loading ? 'Chargement...' : 'Charger plus'}
           </button>

@@ -6,7 +6,7 @@ import { ToastProvider } from '../ui/Toast';
 
 const Layout = ({ children }) => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
       <ToastProvider />
       <BannerMentionLegales />
       <Header />

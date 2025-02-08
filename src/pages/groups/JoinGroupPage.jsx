@@ -38,9 +38,6 @@ const JoinGroupPage = () => {
       const groupDoc = querySnapshot.docs[0];
       const groupData = groupDoc.data();
   
-      // Log pour vérifier la structure de 'members'
-      console.log('Données du groupe:', groupData);
-  
       // Vérifier si l'utilisateur est déjà membre
       if (groupData.members?.[user.uid]) {
         setError('Vous êtes déjà membre de ce groupe');
@@ -48,10 +45,6 @@ const JoinGroupPage = () => {
         return;
       }
   
-      // Ajouter l'utilisateur dans la map des membres
-      console.log("Vérification des données entrantes :");
-  console.log("groupData.members est un objet :", typeof groupData.members === 'object');
-  console.log("user.uid est une clé valide :", user.uid);
       // Ajouter un membre à la sous-collection "members"
       const memberRef = doc(db, 'groups', groupDoc.id, 'members', user.uid);
       await setDoc(memberRef, {
@@ -59,9 +52,6 @@ const JoinGroupPage = () => {
         role: 'member',
         joinedAt: new Date().toISOString()
       });
-  
-      // Log pour confirmer l'ajout du membre
-      console.log('Utilisateur ajouté au groupe:', user.uid);
   
       // Redirection vers le groupe
       navigate(`/group/${groupDoc.id}`);
@@ -76,32 +66,32 @@ const JoinGroupPage = () => {
   
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <header className="mb-8 pb-4 border-b border-gray-200">
+        <header className="mb-8 pb-4 border-b border-gray-200 dark:border-gray-700">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
               Rejoindre un groupe
             </h1>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
               Entrez le code du groupe que vous souhaitez rejoindre
             </p>
           </div>
         </header>
-
+  
         <div className="max-w-md mx-auto">
-          <form onSubmit={handleSubmit} className="bg-white shadow rounded-xl p-6">
+          <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 shadow rounded-xl p-6">
             {error && (
-              <div className="mb-4 p-4 text-red-700 bg-red-100 rounded-lg">
+              <div className="mb-4 p-4 text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/20 rounded-lg">
                 {error}
               </div>
             )}
-
+  
             <div className="mb-6">
               <label 
                 htmlFor="groupCode" 
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
                 Code du groupe
               </label>
@@ -112,19 +102,19 @@ const JoinGroupPage = () => {
                 onChange={(e) => setGroupCode(e.target.value.toUpperCase())}
                 maxLength={8}
                 placeholder="Exemple : ABC123"
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-200 focus:border-pink-500 transition-shadow"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-900 focus:border-pink-500 dark:focus:border-pink-400 transition-shadow dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 disabled={loading}
               />
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 Le code est composé de 8 caractères
               </p>
             </div>
-
+  
             <div className="flex gap-4">
               <button
                 type="button"
                 onClick={() => navigate('/dashboard')}
-                className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Annuler
               </button>
@@ -133,8 +123,8 @@ const JoinGroupPage = () => {
                 disabled={loading || groupCode.length !== 8}
                 className={`flex-1 px-4 py-2 text-white rounded-lg 
                   ${loading || groupCode.length !== 8
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600'
+                    ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 hover:from-pink-600 hover:to-purple-600 dark:hover:from-pink-700 dark:hover:to-purple-700'
                   } transition-colors`}
               >
                 {loading ? 'Chargement...' : 'Rejoindre'}

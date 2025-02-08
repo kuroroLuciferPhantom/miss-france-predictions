@@ -84,15 +84,12 @@ const QuizMiss = () => {
     const updatedAnswers = [...answers];
     updatedAnswers[currentQuestion] = answer;
     setAnswers(updatedAnswers);
-  
-    // Si c'est la dernière question
-    if (currentQuestion === questions.length - 1) {
+    
+    // Ne passer à la question suivante que si ce n'est pas la dernière
+    if (currentQuestion < questions.length - 1) {
       setTimeout(() => {
-        saveResults(updatedAnswers);
-        setShowResults(true);
+        setCurrentQuestion(prev => prev + 1);
       }, 500);
-    } else {
-      setCurrentQuestion(prev => prev + 1);
     }
   };
 
@@ -120,27 +117,27 @@ const QuizMiss = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="max-w-2xl mx-auto px-4">
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
           {!showResults ? (
             <>
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Question {currentQuestion + 1} sur {questions.length}
                 </h2>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
-                    className="bg-gradient-to-r from-pink-500 to-purple-500 h-2 rounded-full transition-all"
+                    className="bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 h-2 rounded-full transition-all"
                     style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
                   />
                 </div>
               </div>
-
-              <p className="text-lg font-medium text-gray-900 mb-6">
+  
+              <p className="text-lg font-medium text-gray-900 dark:text-white mb-6">
                 {questions[currentQuestion].question}
               </p>
-
+  
               <div className="space-y-3">
                 {questions[currentQuestion].options.map((option) => (
                   <button
@@ -148,34 +145,37 @@ const QuizMiss = () => {
                     onClick={() => handleAnswer(option)}
                     className={`w-full py-3 px-6 rounded-lg text-left font-medium transition-all
                       ${answers[currentQuestion] === option 
-                        ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white" 
-                        : "bg-gray-50 text-gray-700 hover:bg-gray-100"}`}
+                        ? "bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 text-white" 
+                        : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"}`}
                   >
                     {option}
                   </button>
                 ))}
               </div>
-
+  
               <div className="flex justify-between mt-8">
                 <button
                   onClick={() => setCurrentQuestion((prev) => prev - 1)}
                   disabled={currentQuestion === 0}
-                  className="px-6 py-2 rounded-lg font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Précédent
                 </button>
-
+  
                 {currentQuestion < questions.length - 1 ? (
                   <button
                     onClick={() => setCurrentQuestion((prev) => prev + 1)}
                     disabled={!answers[currentQuestion]}
-                    className="px-6 py-2 rounded-lg font-medium bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 disabled:opacity-50"
+                    className="px-6 py-2 rounded-lg font-medium bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 text-white hover:from-pink-600 hover:to-purple-600 dark:hover:from-pink-700 dark:hover:to-purple-700 disabled:opacity-50"
                   >
                     Suivant
                   </button>
                 ) : (
                   <button
-                    onClick={() => setShowResults(true)}
+                    onClick={() => {
+                      saveResults(answers);
+                      setShowResults(true);
+                    }}
                     disabled={!answers[currentQuestion]}
                     className="px-6 py-2 rounded-lg font-medium bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 disabled:opacity-50"
                   >
@@ -186,57 +186,57 @@ const QuizMiss = () => {
             </>
           ) : (
             <div>
-              <h2 className="text-3xl font-bold text-center mb-8">
+              <h2 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">
                 Résultats du Quiz
               </h2>
-
-              <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-6 mb-8">
+  
+              <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 rounded-lg p-6 mb-8">
                 <div className="text-center">
-                  <p className="text-lg font-medium text-gray-600 mb-2">Votre score</p>
-                  <p className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+                  <p className="text-lg font-medium text-gray-600 dark:text-gray-300 mb-2">Votre score</p>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-400 dark:to-purple-400 bg-clip-text text-transparent">
                     {calculateScore()} / {questions.length}
                   </p>
                 </div>
               </div>
-
+  
               <div className="space-y-4 mb-8">
                 {questions.map((q, index) => (
-                  <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                    <p className="font-medium text-gray-900 mb-2">{q.question}</p>
+                  <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <p className="font-medium text-gray-900 dark:text-white mb-2">{q.question}</p>
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-sm text-gray-500">Votre réponse</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Votre réponse</p>
                         <p className={`font-medium ${
                           answers[index] === q.correct 
-                            ? "text-green-500" 
-                            : "text-red-500"
+                            ? "text-green-500 dark:text-green-400" 
+                            : "text-red-500 dark:text-red-400"
                         }`}>
                           {answers[index] || "Non répondu"}
                         </p>
                       </div>
                       {answers[index] !== q.correct && (
                         <div className="text-right">
-                          <p className="text-sm text-gray-500">Réponse correcte</p>
-                          <p className="font-medium text-green-500">{q.correct}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Réponse correcte</p>
+                          <p className="font-medium text-green-500 dark:text-green-400">{q.correct}</p>
                         </div>
                       )}
                     </div>
                   </div>
                 ))}
               </div>
-
+  
               <div className="text-center space-y-4">
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-300">
                   Vos résultats ont été sauvegardés. Vous pouvez maintenant les comparer avec ceux des autres membres dans vos groupes !
                 </p>
                 <button
                   onClick={() => navigate('/dashboard')}
-                  className="px-8 py-3 rounded-lg font-medium bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600"
+                  className="px-8 py-3 rounded-lg font-medium bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 text-white hover:from-pink-600 hover:to-purple-600 dark:hover:from-pink-700 dark:hover:to-purple-700"
                 >
                   Retour au dashboard
                 </button>
               </div>
-              </div>
+            </div>
           )}
         </div>
       </div>
