@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PhotoPreviewModal from './PhotoPreviewModal';
-import instagramIcon from '../assets/images/icons/instagram.png';
-import tiktokIcon from '../assets/images/icons/tiktok.png';
+import instagramIcon from '../../assets/images/icons/instagram.png';
+import tiktokIcon from '../../assets/images/icons/tiktok.png';
 
 const MissCard = ({ miss, compact, onSelect, isSelected, selectionType, showRemoveButton, onRemove, rank }) => {
   const [showPhotoPreview, setShowPhotoPreview] = useState(false);

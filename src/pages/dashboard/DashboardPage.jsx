@@ -344,7 +344,7 @@ const DashboardPage = () => {
             
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
               <button
-                onClick={() => navigate('/ranking', { state: { from: 'dashboard' }})}
+                onClick={() => navigate('/predictions', { state: { from: 'dashboard' }})}
                 className="px-4 py-2 border-2 border-pink-500 dark:border-pink-400 text-pink-500 dark:text-pink-400 rounded-lg hover:bg-pink-50 dark:hover:bg-pink-950/30 transition-colors font-medium"
               >
                 {prediction ? 'Modifier mes pronostics' : 'Faire mes pronostics'}

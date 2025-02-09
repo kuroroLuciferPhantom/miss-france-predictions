@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import MissCard from '../components/MissCard';
+import MissCard from '../components/ranking/MissCard';
 import GameRules from '../components/GameRules';
-import ConfirmationModal from '../components/ConfirmationModal';
+import ConfirmationModal from '../components/ranking/ConfirmationModal';
 import PointsSystem from '../components/PointsSystem';
-import MissGalleryModal from '../components/MissGalleryModal';
+import MissGalleryModal from '../components/ranking/MissGalleryModal';
 import { missData, titles } from '../data/missData';
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuthContext } from '../contexts/AuthContext';
 import { showToast } from '../components/ui/Toast';
+import SaveSuccessModal from '../components/ranking/SaveSuccessModal';
+import SharePredictions from '../components/ranking/SharePredictions';
+
 
 
 const RankingPage = () => {
@@ -28,8 +31,8 @@ const RankingPage = () => {
   const [activeTab, setActiveTab] = useState('selection');
   const [isPublic, setIsPublic] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [isSaveSuccessOpen, setIsSaveSuccessOpen] = useState(false);
+  const [showShareComponent, setShowShareComponent] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -38,15 +41,20 @@ const RankingPage = () => {
   }, [user]);
 
   const handleMissSelect = (miss) => {
-    if (selectionStep === 'top3' && top3.length < 3) {
+    // Déterminer l'étape en fonction des sélections actuelles
+    const currentStep = top3.length < 3 ? 'top3' 
+                     : top5.length < 2 ? 'top5'
+                     : 'qualified';
+  
+    if (currentStep === 'top3' && top3.length < 3) {
       setTop3([...top3, miss]);
       setAvailableMisses(availableMisses.filter(m => m.id !== miss.id));
       if (top3.length === 2) setSelectionStep('top5');
-    } else if (selectionStep === 'top5' && top5.length < 2) {
+    } else if (currentStep === 'top5' && top5.length < 2) {
       setTop5([...top5, miss]);
       setAvailableMisses(availableMisses.filter(m => m.id !== miss.id));
       if (top5.length === 1) setSelectionStep('qualified');
-    } else if (selectionStep === 'qualified' && qualified.length < 10) {
+    } else if (currentStep === 'qualified' && qualified.length < 10) {
       setQualified([...qualified, miss]);
       setAvailableMisses(availableMisses.filter(m => m.id !== miss.id));
     }
@@ -103,10 +111,7 @@ const RankingPage = () => {
       }
 
       setIsConfirmationOpen(false);
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
-
+      setIsSaveSuccessOpen(true);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
       showToast.error('Une erreur est survenue lors de la sauvegarde');
@@ -156,8 +161,6 @@ const RankingPage = () => {
     }
   };
 
-  const isSelectionComplete = top3.length === 3 && top5.length === 2 && qualified.length === 10;
-
   const getAllMisses = () => {
     const selectedMisses = [...top3, ...top5, ...qualified];
     return missData.map(miss => {
@@ -206,6 +209,15 @@ const RankingPage = () => {
       navigate('/dashboard');
     }
   };
+
+  const handleShare = () => {
+    setIsSaveSuccessOpen(false);
+    setShowShareComponent(true);
+  };
+  
+  const handleDashboard = () => {
+    navigate('/dashboard');
+  };  
 
 
   return (
@@ -468,6 +480,22 @@ const RankingPage = () => {
           onClose={() => setIsConfirmationOpen(false)}
           onConfirm={handleSubmit}
         />
+        
+        <SaveSuccessModal
+          isOpen={isSaveSuccessOpen}
+          onClose={() => setIsSaveSuccessOpen(false)}
+          onShare={handleShare}
+          onDashboard={handleDashboard}
+        />
+
+        {showShareComponent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4">
+              <SharePredictions onClose={() => setShowShareComponent(false)} />
+            </div>
+          </div>
+        )}
+
         <MissGalleryModal
           isOpen={isGalleryOpen}
           onClose={() => setIsGalleryOpen(false)}

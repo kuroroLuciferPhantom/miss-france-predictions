@@ -79,7 +79,7 @@ function App() {
               </PageTransition>
             </PrivateRoute>
           } />
-          <Route path="/ranking" element={
+          <Route path="/predictions" element={
             <PrivateRoute>
               <PageTransition>
                 <RankingPage />
