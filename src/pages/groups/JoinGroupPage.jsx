@@ -4,6 +4,7 @@ import { db } from '../../config/firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { collection, query, where, getDocs, getDoc, doc, setDoc } from 'firebase/firestore';
 import { ArrowLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const JoinGroupPage = () => {
   const [groupCode, setGroupCode] = useState('');

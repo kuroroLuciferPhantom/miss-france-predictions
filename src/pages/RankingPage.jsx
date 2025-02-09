@@ -15,7 +15,6 @@ import SaveSuccessModal from '../components/ranking/SaveSuccessModal';
 import SharePredictions from '../components/ranking/SharePredictions';
 
 
-
 const RankingPage = () => {
   const { user } = useAuthContext();
   const navigate = useNavigate();
@@ -36,11 +35,22 @@ const RankingPage = () => {
 
   useEffect(() => {
     if (user) {
-      loadExistingPredictions();
+      loadExistingPredictions().then(hasPronostics => {
+        if (hasPronostics) {
+          showToast.success('Vos pronostics ont été chargés !');
+        }
+      });
     }
   }, [user]);
 
   const handleMissSelect = (miss) => {
+    // Vérifier le nombre total de sélections
+    const totalSelected = top3.length + top5.length + qualified.length;
+    if (totalSelected >= 15) {
+      showToast.error('Vous avez déjà sélectionné 15 Miss. Retirez-en une pour en ajouter une nouvelle.');
+      return;
+    }
+  
     // Déterminer l'étape en fonction des sélections actuelles
     const currentStep = top3.length < 3 ? 'top3' 
                      : top5.length < 2 ? 'top5'
@@ -153,11 +163,13 @@ const RankingPage = () => {
         ];
         setAvailableMisses(missData.filter(miss => !selectedMissIds.includes(miss.id)));
 
-        showToast.success('Vos pronostics ont été chargés !');
+        return true;
       }
+      return false;
     } catch (error) {
       console.error('Erreur lors du chargement des prédictions:', error);
       showToast.error('Impossible de charger vos pronostics existants');
+      return false;
     }
   };
 

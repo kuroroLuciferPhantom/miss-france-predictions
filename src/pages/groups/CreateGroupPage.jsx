@@ -7,9 +7,26 @@ import PointsSystem from '../../components/PointsSystem';
 import toast from 'react-hot-toast';
 
 
-const generateInviteCode = () => {
+const generateInviteCode = async () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  // Générer le code
+  const code = Array.from(
+    { length: 8 }, 
+    () => chars[Math.floor(Math.random() * chars.length)]
+  ).join('');
+
+  // Vérifier s'il existe déjà
+  const groupQuery = query(
+    collection(db, 'groups'),
+    where('inviteCode', '==', code)
+  );
+  const existingGroups = await getDocs(groupQuery);
+
+  if (!existingGroups.empty) {
+    throw new Error('Un groupe avec ce code existe déjà. Veuillez réessayer.');
+  }
+
+  return code;
 };
 
 const CreateGroupPage = () => {
@@ -62,7 +79,7 @@ const CreateGroupPage = () => {
       }
   
       // Générer un code d'invitation unique
-      const inviteCode = generateInviteCode();
+      const inviteCode = await generateInviteCode();
   
       // Créer le document du groupe
       const groupRef = doc(db, 'groups', inviteCode);

@@ -11,15 +11,17 @@ import Chat from '../../components/groups/Chat';
 import QuizSection from '../../components/dashboard/QuizSection';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import toast from 'react-hot-toast';
-import { 
-  doc, 
-  getDoc, 
-  collection, 
-  query, 
-  where, 
+import { showToast } from '../../components/ui/Toast';
+import { useNavigate } from 'react-router-dom';
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
   orderBy,
   limit,
-  addDoc, 
+  addDoc,
   onSnapshot,
   getDocs,
   serverTimestamp,
@@ -70,14 +72,13 @@ const MembersList = ({ members }) => (
     </h2>
     <div className="space-y-3">
       {members.map((member) => (
-        <div 
-          key={member.userId} 
+        <div
+          key={member.userId}
           className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0"
         >
           <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${
-              member.isOnline ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
-            }`} />
+            <span className={`w-2 h-2 rounded-full ${member.isOnline ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
+              }`} />
             <span className="font-medium text-gray-900 dark:text-white">
               {member.username}
             </span>
@@ -104,53 +105,75 @@ const MembersList = ({ members }) => (
   </div>
 );
 
-const GroupSettings = ({ onRename, onDelete, isAdmin }) => {
-  if (!isAdmin) return null;
-
+const GroupSettings = ({ onRename, onDelete, onLeave, isAdmin, membersCount }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
       <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
         Paramètres
       </h2>
       <div className="space-y-4">
+        {isAdmin && (
+          <>
+            <button
+              onClick={onRename}
+              className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded flex items-center gap-2 transition-colors"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                />
+              </svg>
+              Modifier le nom du groupe
+            </button>
+
+            <button
+              onClick={onDelete}
+              className="w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded flex items-center gap-2 transition-colors"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+              Supprimer le groupe
+            </button>
+          </>
+        )}
+
         <button
-          onClick={onRename}
-          className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded flex items-center gap-2 transition-colors"
+          onClick={onLeave}
+          className="w-full text-left px-4 py-2 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded flex items-center gap-2 transition-colors"
         >
-          <svg 
-            className="w-5 h-5" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth="2" 
-              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" 
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
             />
           </svg>
-          Modifier le nom du groupe
-        </button>
-        
-        <button
-          onClick={onDelete}
-          className="w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded flex items-center gap-2 transition-colors"
-        >
-          <svg 
-            className="w-5 h-5" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth="2" 
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
-            />
-          </svg>
-          Supprimer le groupe
+          Quitter le groupe
         </button>
       </div>
     </div>
@@ -171,18 +194,20 @@ const GroupDetailPage = () => {
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchGroupData = async () => {
       try {
         const groupRef = doc(db, 'groups', groupId);
         const groupSnapshot = await getDoc(groupRef);
-    
+
         if (groupSnapshot.exists()) {
           const groupData = groupSnapshot.data();
           const adminDoc = await getDoc(doc(db, 'users', groupData.admin));
           const adminData = adminDoc.data();
-    
+
           // Récupérer les membres de la sous-collection 'members'
           const membersRef = collection(db, 'groups', groupId, 'members');
           const membersSnapshot = await getDocs(membersRef);
@@ -221,7 +246,7 @@ const GroupDetailPage = () => {
             }));
 
           // Une prédiction est valide pour les tendances/favorites si elle est publique ou si l'émission a commencé
-          const validPredictionsForStats = allPredictions.filter(p => 
+          const validPredictionsForStats = allPredictions.filter(p =>
             p.isComplete && (p.isPublic || eventStarted)
           );
 
@@ -245,7 +270,7 @@ const GroupDetailPage = () => {
         console.error('Erreur lors du chargement des données:', error);
       }
     };
-  
+
     if (groupId) {
       fetchGroupData();
     }
@@ -256,9 +281,9 @@ const GroupDetailPage = () => {
       console.log("No groupId or user not authenticated");
       return;
     }
-  
+
     const groupRef = doc(db, "groups", groupId);
-  
+
     // Vérifier si l'utilisateur est membre du groupe avant de récupérer les messages
     getDoc(groupRef).then(async (groupSnap) => {
       if (!groupSnap.exists()) {
@@ -267,7 +292,7 @@ const GroupDetailPage = () => {
       }
 
       const groupData = groupSnap.data();
-      
+
       // Récupérer la sous-collection "members" pour vérifier si l'utilisateur en fait partie
       const membersRef = collection(db, "groups", groupId, "members");
       const memberSnap = await getDocs(membersRef);
@@ -300,38 +325,50 @@ const GroupDetailPage = () => {
         }
       );
 
-    return () => unsubscribe();
-});
+      return () => unsubscribe();
+    });
 
+    const checkQuizCompletion = async () => {
+      try {
+        const quizRef = doc(db, 'quizResults', user.uid);
+        const quizDoc = await getDoc(quizRef);
+        setHasCompletedQuiz(quizDoc.exists());
+      } catch (error) {
+        console.error('Erreur lors de la vérification du quiz:', error);
+      }
+    };
 
+    if (user) {
+      checkQuizCompletion();
+    }
   }, [groupId, user?.uid]);
-  
+
   const handleSendMessage = async (text) => {
     if (!groupId || !user?.uid) {
       console.log("No groupId or user not authenticated");
       return;
     }
-  
+
     try {
       const groupRef = doc(db, "groups", groupId);
       const groupSnap = await getDoc(groupRef);
-  
+
       if (!groupSnap.exists()) {
         console.log("Group does not exist");
         return;
       }
-  
+
       const groupData = groupSnap.data();
-  
+
       // Vérifier si l'utilisateur est membre en vérifiant la sous-collection members
       const memberRef = doc(db, "groups", groupId, "members", user.uid);
       const memberSnap = await getDoc(memberRef);
-  
+
       if (groupData.admin !== user.uid && !memberSnap.exists()) {
         console.log("User is not a member of this group");
         return;
       }
-  
+
       const messagesRef = collection(db, "groups", groupId, "chat");
       await addDoc(messagesRef, {
         userId: user.uid,
@@ -345,7 +382,7 @@ const GroupDetailPage = () => {
       if (error.message) console.log("Error message:", error.message);
     }
   };
-  
+
 
   if (!group) {
     return (
@@ -391,16 +428,96 @@ const GroupDetailPage = () => {
     }
   };
 
+  const handleLeaveGroup = async () => {
+    try {
+      const groupRef = doc(db, 'groups', groupId);
+      const groupDoc = await getDoc(groupRef);
+      const groupData = groupDoc.data();
+      const membersSnapshot = await getDocs(collection(groupRef, 'members'));
+      const memberCount = membersSnapshot.size;
+
+      // Si c'est le dernier membre
+      if (memberCount === 1 && user.uid === groupData.admin) {
+        console.log('Last member leaving group');
+        // Supprimer le groupe entier
+        await deleteDoc(groupRef);
+        navigate('/dashboard');
+        showToast.success('Groupe supprimé avec succès');
+        return;
+      }
+
+      // Si c'est l'admin qui part
+      if (user.uid === groupData.admin) {
+        console.log('Admin leaving group');
+        // Trouver le premier membre non-admin
+        const members = membersSnapshot.docs
+          .filter(doc => doc.id !== user.uid)
+          .map(doc => ({ id: doc.id, ...doc.data() }));
+
+        if (members.length > 0) {
+          console.log('Promoting new admin:', members[0]);
+          // Promouvoir le premier membre comme admin
+          const newAdmin = members[0];
+          await updateDoc(groupRef, { admin: newAdmin.id });
+        }
+      }
+
+      console.log('Removing user from group');
+      // Supprimer le membre
+      await deleteDoc(doc(groupRef, 'members', user.uid));
+
+      navigate('/dashboard');
+      showToast.success('Vous avez quitté le groupe avec succès');
+    } catch (error) {
+      console.error('Erreur lors du départ du groupe:', error);
+      showToast.error('Une erreur est survenue lors du départ du groupe');
+    }
+  };
+
+  const ConfirmLeaveModal = ({ isOpen, onClose, onConfirm, isAdmin }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="fixed inset-x-0 top-0 h-[100dvh] bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex justify-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 mt-20 h-fit">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+            Quitter le groupe
+          </h3>
+          <p className="mb-6 text-gray-600 dark:text-gray-300">
+            {isAdmin
+              ? "En tant qu'administrateur, si vous quittez le groupe, un autre membre sera désigné comme administrateur. Êtes-vous sûr de vouloir quitter le groupe ?"
+              : "Êtes-vous sûr de vouloir quitter ce groupe ?"}
+          </p>
+
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={onConfirm}
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white rounded-lg transition-colors"
+            >
+              Quitter le groupe
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
-    switch(currentTab) {
+    switch (currentTab) {
       case 'stats':
         return (
           <>
-            <LeaderboardTable 
+            <LeaderboardTable
               members={group.members}
               eventStarted={eventStarted}
             />
-            <GroupStats 
+            <GroupStats
               predictions={predictions}
               members={group.members}
               group={group}
@@ -408,40 +525,40 @@ const GroupDetailPage = () => {
             />
           </>
         );
-        case 'predictions':
-          console.log("Rendering predictions tab with:", {
-            predictions: predictions,
-            eventStarted: group.stats.eventStarted,
-            totalPredictions: predictions?.length
-          });
-          return (
-            <PredictionsList 
-              predictions={predictions}
-              eventStarted={group.stats.eventStarted}
-            />
-          );
-        case 'chat':
-          return (
-            <Chat 
-              messages={messages}
-              onSendMessage={handleSendMessage}
-            />
-          );
-        case 'quiz':
-          return (
-            <div>
-              {hasCompletedQuiz ? (
-                <QuizLeaderboard groupMembers={group.members} />
-              ) : (
-                <div>
-                  <QuizSection user={user} />
-                </div>
-              )}
-            </div>
-          );
-        default:
-          return null;
-      }
+      case 'predictions':
+        console.log("Rendering predictions tab with:", {
+          predictions: predictions,
+          eventStarted: group.stats.eventStarted,
+          totalPredictions: predictions?.length
+        });
+        return (
+          <PredictionsList
+            predictions={predictions}
+            eventStarted={group.stats.eventStarted}
+          />
+        );
+      case 'chat':
+        return (
+          <Chat
+            messages={messages}
+            onSendMessage={handleSendMessage}
+          />
+        );
+      case 'quiz':
+        return (
+          <div>
+            {hasCompletedQuiz ? (
+              <QuizLeaderboard groupMembers={group.members} />
+            ) : (
+              <div>
+                <QuizSection user={user} />
+              </div>
+            )}
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -455,7 +572,7 @@ const GroupDetailPage = () => {
             {group?.description && (
               <p className="mt-2 text-gray-500 dark:text-gray-400">{group.description}</p>
             )}
-  
+
             {/* Infos supplémentaires */}
             <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
               <div>
@@ -481,21 +598,29 @@ const GroupDetailPage = () => {
             </div>
           </div>
         </div>
-  
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Les composants de colonnes sont déjà adaptés au mode sombre séparément */}
           <div className="lg:col-span-1 space-y-6">
             <MembersList members={group.members} />
             <ShareInviteCode code={group.inviteCode} />
-            <GroupSettings 
+            <GroupSettings
               isAdmin={isAdmin}
               onRename={() => {
                 setNewGroupName(group.name);
                 setShowRenameModal(true);
               }}
+              onLeave={() => setIsLeaveModalOpen(true)}
               onDelete={() => setShowDeleteConfirm(true)}
             />
-  
+
+            <ConfirmLeaveModal
+              isOpen={isLeaveModalOpen}
+              onClose={() => setIsLeaveModalOpen(false)}
+              onConfirm={handleLeaveGroup}
+              isAdmin={isAdmin}
+            />
+
             {/* Modal de renommage */}
             <Dialog open={showRenameModal} onClose={() => setShowRenameModal(false)}>
               <div className="fixed inset-0 bg-black/30 dark:bg-black/50" aria-hidden="true" />
@@ -504,7 +629,7 @@ const GroupDetailPage = () => {
                   <DialogTitle className="text-xl font-medium text-gray-900 dark:text-white mb-6">
                     Modifier le nom du groupe
                   </DialogTitle>
-  
+
                   <input
                     type="text"
                     value={newGroupName}
@@ -512,10 +637,10 @@ const GroupDetailPage = () => {
                     placeholder="Nouveau nom du groupe"
                     className="w-full px-4 py-3 text-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 dark:focus:ring-pink-400 focus:border-pink-500 dark:focus:border-pink-400 dark:placeholder-gray-400"
                   />
-  
+
                   <div className="mt-8 flex justify-end space-x-4">
                     <button
-                      onClick={() => setShowRenameModal(false)} 
+                      onClick={() => setShowRenameModal(false)}
                       className="px-6 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
                       Annuler
@@ -530,7 +655,7 @@ const GroupDetailPage = () => {
                 </DialogPanel>
               </div>
             </Dialog>
-  
+
             {/* Modal de confirmation de suppression */}
             <Dialog open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
               <div className="fixed inset-0 bg-black/30 dark:bg-black/50" aria-hidden="true" />
@@ -539,11 +664,11 @@ const GroupDetailPage = () => {
                   <DialogTitle className="text-lg font-medium text-gray-900 dark:text-white mb-4">
                     Supprimer le groupe
                   </DialogTitle>
-  
+
                   <p className="text-gray-600 dark:text-gray-300 mb-6">
                     Êtes-vous sûr de vouloir supprimer ce groupe ? Cette action est irréversible.
                   </p>
-  
+
                   <div className="flex justify-end space-x-3">
                     <button
                       onClick={() => setShowDeleteConfirm(false)}
@@ -562,17 +687,17 @@ const GroupDetailPage = () => {
               </div>
             </Dialog>
           </div>
-  
+
           {/* Colonne droite - Pronostics, Classement et Chat */}
           <div className="lg:col-span-2 space-y-6">
             {/* Résumé des pronostics de l'utilisateur */}
             <div className="mb-6">
-              <UserPredictionSummary 
+              <UserPredictionSummary
                 prediction={predictions.find(p => p.userId === user.uid)}
                 groupId={groupId}
               />
             </div>
-  
+
             {/* Navigation par onglets */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
               <div className="border-b border-gray-200 dark:border-gray-700">
@@ -581,18 +706,17 @@ const GroupDetailPage = () => {
                     <button
                       key={tab}
                       onClick={() => setCurrentTab(tab)}
-                      className={`py-4 px-6 font-medium text-sm border-b-2 ${
-                        currentTab === tab
-                          ? 'border-pink-500 text-pink-600 dark:text-pink-400'
-                          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                      }`}
+                      className={`py-4 px-6 font-medium text-sm border-b-2 ${currentTab === tab
+                        ? 'border-pink-500 text-pink-600 dark:text-pink-400'
+                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
                     >
                       {tab === 'quiz' ? 'QCM Miss' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                     </button>
                   ))}
                 </nav>
               </div>
-              
+
               <div className="p-6">
                 {renderContent()}
               </div>
