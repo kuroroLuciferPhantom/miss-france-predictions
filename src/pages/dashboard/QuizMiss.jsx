@@ -100,6 +100,8 @@ const QuizMiss = () => {
   const saveResults = async (finalAnswers) => {
     try {
       const score = finalAnswers.filter((answer, index) => answer === questions[index].correct).length;
+      
+      // Préparer les données du quiz
       const quizData = {
         userId: user.uid,
         score,
@@ -108,7 +110,51 @@ const QuizMiss = () => {
         completedAt: new Date().toISOString()
       };
   
+      // Créer/Mettre à jour les résultats du quiz
       await setDoc(doc(db, 'quizResults', user.uid), quizData);
+  
+      // Gérer les badges
+      const userBadgesRef = doc(db, 'userBadges', user.uid);
+      const userBadgesDoc = await getDoc(userBadgesRef);
+      const currentBadges = userBadgesDoc.exists() ? userBadgesDoc.data().badges || {} : {};
+      
+      const badgesToAdd = {};
+      const newBadgesMessages = [];
+  
+      // Badge "Bonnet d'Âne" - moins de 10
+      if (score < 10 && !currentBadges['cancre']) {
+        badgesToAdd['cancre'] = true;
+        newBadgesMessages.push('Bonnet d\'Âne');
+      }
+      
+      // Badge "Le pinguin qui glisse le plus" - plus de 14
+      if (score > 14 && !currentBadges['instruit']) {
+        badgesToAdd['instruit'] = true;
+        newBadgesMessages.push('Le pinguin qui glisse le plus');
+      }
+      
+      // Badge "Expert Miss France" - 20/20
+      if (score === 20 && !currentBadges['quizPerfect']) {
+        badgesToAdd['quizPerfect'] = true;
+        newBadgesMessages.push('Expert Miss France');
+      }
+  
+      // Si de nouveaux badges sont débloqués
+      if (Object.keys(badgesToAdd).length > 0) {
+        await setDoc(userBadgesRef, {
+          badges: {
+            ...currentBadges,
+            ...badgesToAdd
+          },
+          lastUpdated: new Date().toISOString()
+        }, { merge: true });
+  
+        // Afficher un toast pour chaque nouveau badge
+        newBadgesMessages.forEach(badgeTitle => {
+          showToast.success(`🏆 Nouveau badge débloqué : ${badgeTitle}`);
+        });
+      }
+  
       showToast.success('Quiz complété !');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
