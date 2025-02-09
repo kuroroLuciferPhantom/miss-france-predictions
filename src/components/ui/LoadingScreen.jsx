@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 const LoadingScreen = ({ message = "Chargement..." }) => {
   return (
-    <div className="fixed inset-0 bg-white z-50">
+    <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50">
       <div className="h-screen flex flex-col items-center justify-center">
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}

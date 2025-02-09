@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { doc, setDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import PointsSystem from '../../components/PointsSystem';
+import toast from 'react-hot-toast';
 
 
 const generateInviteCode = () => {
@@ -21,15 +22,48 @@ const CreateGroupPage = () => {
     description: ''
   });
 
+  useEffect(() => {
+    const checkGroupLimit = async () => {
+      try {
+        const membershipQuery = query(
+          collection(db, 'groups'),
+          where(`members.${user.uid}`, '!=', null)
+        );
+        const querySnapshot = await getDocs(membershipQuery);
+        if (querySnapshot.size >= 15) {
+          setError('Vous avez atteint la limite de 15 groupes. Veuillez quitter un groupe avant d\'en créer un nouveau.');
+        }
+      } catch (err) {
+        console.error('Erreur lors de la vérification des groupes:', err);
+        setError('Une erreur est survenue lors de la vérification de vos groupes.');
+      }
+    };
+
+    checkGroupLimit();
+  }, [user.uid]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-
+  
     try {
+      // Vérifier le nombre de groupes
+      const membershipQuery = query(
+        collection(db, 'groups'),
+        where(`members.${user.uid}`, '!=', null)
+      );
+      const userGroups = await getDocs(membershipQuery);
+  
+      if (userGroups.size >= 15) {
+        setError('Vous avez atteint la limite de 15 groupes. Veuillez quitter un groupe avant d\'en créer un nouveau.');
+        setIsLoading(false);
+        return;
+      }
+  
       // Générer un code d'invitation unique
       const inviteCode = generateInviteCode();
-
+  
       // Créer le document du groupe
       const groupRef = doc(db, 'groups', inviteCode);
       await setDoc(groupRef, {
@@ -39,7 +73,7 @@ const CreateGroupPage = () => {
         admin: user.uid,
         createdAt: new Date().toISOString()
       });
-
+  
       // Créer la sous-collection "members" pour le groupe
       const memberRef = doc(db, 'groups', inviteCode, 'members', user.uid);
       await setDoc(memberRef, {
@@ -48,6 +82,8 @@ const CreateGroupPage = () => {
         joinedAt: new Date().toISOString()
       });
 
+      toast.success('Groupe créé avec succès !');
+  
       // Rediriger vers la page du groupe
       navigate(`/group/${inviteCode}`);
     } catch (err) {
@@ -84,6 +120,16 @@ const CreateGroupPage = () => {
           {error && (
             <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 p-4 rounded">
               {error}
+              {error.includes('limite de 15 groupes') && (
+                <div className="mt-2">
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
+                  >
+                    Retourner au tableau de bord
+                  </button>
+                </div>
+              )}
             </div>
           )}
   
