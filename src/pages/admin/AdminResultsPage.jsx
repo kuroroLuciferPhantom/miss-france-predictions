@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../config/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { showToast } from '../../components/ui/Toast';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { missData, titles } from '../../data/missData';
 
@@ -11,7 +12,6 @@ const AdminResultsPage = () => {
   const [loading, setLoading] = useState(true);
   const [eventStatus, setEventStatus] = useState(null);
   const [selectedMisses, setSelectedMisses] = useState([]);
-  const [availableMisses, setAvailableMisses] = useState([]); // Liste complète des Miss
   const [top5Selections, setTop5Selections] = useState(Array(5).fill(null));
   const [saving, setSaving] = useState(false);
 
@@ -42,12 +42,6 @@ const AdminResultsPage = () => {
           setEventStatus(data);
           setSelectedMisses(data.qualified || []);
           setTop5Selections(data.top5 || Array(5).fill(null));
-        }
-
-        // Charger la liste des Miss
-        const missesDoc = await getDoc(doc(db, 'misses', '2025'));
-        if (missesDoc.exists()) {
-          setAvailableMisses(missesDoc.data().misses || []);
         }
       } catch (error) {
         console.error('Erreur lors du chargement:', error);
@@ -90,15 +84,29 @@ const AdminResultsPage = () => {
   const saveResults = async () => {
     setSaving(true);
     try {
-      await updateDoc(doc(db, 'eventResults', 'missfranceEventStatus'), {
+      const eventRef = doc(db, 'eventResults', 'missfranceEventStatus');
+      const eventDoc = await getDoc(eventRef);
+
+      const newData = {
         qualified: selectedMisses,
         top15Completed: selectedMisses.length === 15,
         top5: top5Selections,
         top5Completed: top5Selections.every(miss => miss !== null),
         lastUpdated: new Date().toISOString()
-      });
+      };
+
+      if (!eventDoc.exists()) {
+        // Le document n'existe pas, on le crée
+        await setDoc(eventRef, newData);
+      } else {
+        // Le document existe, on le met à jour
+        await updateDoc(eventRef, newData);
+      }
+
+      showToast.success('Résultats sauvegardés avec succès !');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
+      showToast.error('Erreur lors de la sauvegarde');
     } finally {
       setSaving(false);
     }
@@ -109,19 +117,19 @@ const AdminResultsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden dark:bg-gray-800">
           {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Administration des résultats
             </h1>
           </div>
 
           {/* Sélection des 15 qualifiées */}
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold mb-4">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-semibold mb-4 dark:text-white">
               Les 15 qualifiées {selectedMisses.length}/15
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -129,13 +137,14 @@ const AdminResultsPage = () => {
                 <div
                   key={miss.id}
                   onClick={() => handleQualifiedSelect(miss)}
-                  className={`p-4 rounded-lg border cursor-pointer transition-colors ${
-                    selectedMisses.find(m => m.id === miss.id)
+                  className={`p-4 rounded-lg border cursor-pointer transition-colors ${selectedMisses.find(m => m.id === miss.id)
                       ? 'border-pink-500 bg-pink-50'
                       : 'border-gray-200 hover:border-pink-200'
-                  }`}
+                    }`}
                 >
-                  <div className="font-medium">{miss.name}</div>
+                  <div className={`font-medium ${selectedMisses.find(m => m.id === miss.id) ? '' : 'dark:text-white'}`}>
+                    {miss.name}
+                  </div>
                   <div className="text-sm text-gray-500">{miss.region}</div>
                   {selectedMisses.find(m => m.id === miss.id) && (
                     <div className="text-xs text-pink-600 mt-1">
@@ -149,7 +158,7 @@ const AdminResultsPage = () => {
 
           {/* Sélection du Top 5 */}
           <div className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Le Top 5</h2>
+            <h2 className="text-xl font-semibold mb-4 dark:text-white">Le Top 5</h2>
             <div className="space-y-4">
               {titles.map((title, index) => (
                 <div key={index} className="flex items-center space-x-4">
@@ -167,8 +176,8 @@ const AdminResultsPage = () => {
                   >
                     <option value="">Sélectionner une Miss</option>
                     {selectedMisses.map(miss => (
-                      <option 
-                        key={miss.id} 
+                      <option
+                        key={miss.id}
                         value={miss.id}
                         disabled={top5Selections.some(selected => selected?.id === miss.id)}
                       >
@@ -182,7 +191,7 @@ const AdminResultsPage = () => {
           </div>
 
           {/* Actions */}
-          <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-4">
+          <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-4 dark:bg-gray-800">
             <button
               onClick={saveResults}
               disabled={saving}

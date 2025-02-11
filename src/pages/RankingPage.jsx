@@ -7,7 +7,7 @@ import ConfirmationModal from '../components/ranking/ConfirmationModal';
 import PointsSystem from '../components/PointsSystem';
 import MissGalleryModal from '../components/ranking/MissGalleryModal';
 import { missData, titles } from '../data/missData';
-import { doc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuthContext } from '../contexts/AuthContext';
 import { showToast } from '../components/ui/Toast';
@@ -32,8 +32,25 @@ const RankingPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaveSuccessOpen, setIsSaveSuccessOpen] = useState(false);
   const [showShareComponent, setShowShareComponent] = useState(false);
+  const [eventStarted, setEventStarted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const checkEventStatus = async () => {
+      try {
+        const eventDoc = await getDoc(doc(db, 'events', 'missfranceEventStatus'));
+        if (eventDoc.exists() && eventDoc.data().started) {
+          setEventStarted(true);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la vérification du statut de l\'événement:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkEventStatus();
+    
     if (user) {
       loadExistingPredictions().then(hasPronostics => {
         if (hasPronostics) {
@@ -230,6 +247,55 @@ const RankingPage = () => {
   const handleDashboard = () => {
     navigate('/dashboard');
   };  
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 dark:border-pink-400 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (eventStarted) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 text-center">
+            <div className="mb-6">
+              <svg 
+                className="mx-auto h-16 w-16 text-red-500 dark:text-red-400" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
+                />
+              </svg>
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              L'élection a commencé
+            </h2>
+            
+            <p className="text-gray-600 dark:text-gray-300 mb-8">
+              Il n'est plus possible de modifier ou d'ajouter des pronostics car l'élection Miss France 2026 a débuté.
+            </p>
+
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-600 dark:hover:from-pink-700 dark:hover:to-purple-700 transition-colors font-medium"
+            >
+              Retour au tableau de bord
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
 
   return (

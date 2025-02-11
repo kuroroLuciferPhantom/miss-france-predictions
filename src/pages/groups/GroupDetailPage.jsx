@@ -77,8 +77,6 @@ const MembersList = ({ members }) => (
           className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0"
         >
           <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${member.isOnline ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
-              }`} />
             <span className="font-medium text-gray-900 dark:text-white">
               {member.username}
             </span>
@@ -230,7 +228,13 @@ const GroupDetailPage = () => {
             };
           });
 
-          const updatedMembers = await Promise.all(memberPromises);
+          const updatedMembers = await Promise.all(memberPromises);    
+
+          // Vérifier l'état de l'événement
+          const eventDoc = await getDoc(doc(db, 'events', 'missfranceEventStatus'));
+          if (eventDoc.exists()) {
+            setEventStarted(eventDoc.data().started || false);
+          }
 
           // Une prédiction est valide pour les stats si elle est complète
           const completedPredictions = updatedMembers.filter(m => m.prediction?.isComplete).length;
@@ -265,6 +269,7 @@ const GroupDetailPage = () => {
 
           setPredictions(allPredictions);
           setUserHasPredicted(allPredictions.some(p => p.userId === user.uid));
+          setIsAdmin(groupData.admin === user.uid);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
@@ -521,20 +526,15 @@ const GroupDetailPage = () => {
               predictions={predictions}
               members={group.members}
               group={group}
-              eventStarted={group.stats.eventStarted}
+              eventStarted={eventStarted}
             />
           </>
         );
       case 'predictions':
-        console.log("Rendering predictions tab with:", {
-          predictions: predictions,
-          eventStarted: group.stats.eventStarted,
-          totalPredictions: predictions?.length
-        });
         return (
           <PredictionsList
             predictions={predictions}
-            eventStarted={group.stats.eventStarted}
+            eventStarted={eventStarted}
           />
         );
       case 'chat':
@@ -695,6 +695,7 @@ const GroupDetailPage = () => {
               <UserPredictionSummary
                 prediction={predictions.find(p => p.userId === user.uid)}
                 groupId={groupId}
+                eventStarted={eventStarted}
               />
             </div>
 

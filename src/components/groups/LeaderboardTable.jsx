@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../config/firebase';
 
 const LeaderboardTable = ({ members, eventStarted }) => {
   // Trier les membres par points
-  const sortedMembers = [...members].sort((a, b) => (b.points || 0) - (a.points || 0));
+  const [membersWithScores, setMembersWithScores] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
 
   const getTrendIcon = (trend) => {
     switch(trend) {
@@ -15,6 +19,46 @@ const LeaderboardTable = ({ members, eventStarted }) => {
         return <Minus className="w-4 h-4 text-gray-400" />;
     }
   };
+
+  useEffect(() => {
+    const fetchScores = async () => {
+      try {
+        const membersScores = await Promise.all(
+          members.map(async (member) => {
+            const scoreDoc = await getDoc(doc(db, 'userScores', member.userId, 'years', '2026'));
+            return {
+              ...member,
+              points: scoreDoc.exists() ? scoreDoc.data().totalScore : 0
+            };
+          })
+        );
+        setMembersWithScores(membersScores);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des scores:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchScores();
+  }, [members]);
+
+  const sortedMembers = [...membersWithScores].sort((a, b) => (b.points || 0) - (a.points || 0));
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">

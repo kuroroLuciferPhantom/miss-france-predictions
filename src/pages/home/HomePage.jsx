@@ -156,12 +156,13 @@ const HowItWorks = () => (
 );
 
 const Statistics = () => {
+  const { isAuthenticated } = useAuthContext();
   const [stats, setStats] = useState({
     participants: 0,
     groupsCount: 0,
     topMiss: {
-      name: '',
-      region: ''
+      name: '-',
+      count: 0
     }
   });
 
@@ -213,8 +214,10 @@ const Statistics = () => {
       }
     };
 
-    fetchStats();
-  }, []);
+    if (isAuthenticated) {
+      fetchStats();
+    }
+  }, [isAuthenticated]);
 
   return (
     <motion.div 
@@ -227,16 +230,26 @@ const Statistics = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           <div className="space-y-2">
-            <div className="text-4xl font-bold">{stats.participants}</div>
+            <div className="text-4xl font-bold">
+              {isAuthenticated ? stats.participants : "1,234"}
+            </div>
             <div className="text-pink-100">Participants</div>
           </div>
           <div className="space-y-2">
-            <div className="text-4xl font-bold">{stats.groupsCount}</div>
+            <div className="text-4xl font-bold">
+              {isAuthenticated ? stats.groupsCount : "256"}
+            </div>
             <div className="text-pink-100">Groupes actifs</div>
           </div>
           <div className="space-y-2">
-            <div className="text-4xl font-bold">{stats.topMiss.name}</div>
-            <div className="text-pink-100">Miss favorite ({stats.topMiss.count || 0} votes)</div>
+            <div className="text-4xl font-bold">
+              {isAuthenticated ? stats.topMiss.name : "-"}
+            </div>
+            <div className="text-pink-100">
+              {isAuthenticated 
+                ? `Miss favorite (${stats.topMiss.count} votes)` 
+                : "Connectez-vous pour voir les statistiques en direct"}
+            </div>
           </div>
         </div>
       </div>

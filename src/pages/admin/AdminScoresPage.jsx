@@ -9,6 +9,7 @@ import {
   writeBatch
 } from 'firebase/firestore';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { showToast } from '../../components/ui/Toast';
 
 const AdminScoresPage = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const AdminScoresPage = () => {
   const calculateScores = async () => {
     setCalculating(true);
     setUsersProcessed(0);
-
+  
     try {
       // Récupérer toutes les prédictions
       const predictionsSnapshot = await getDocs(collection(db, 'predictions'));
@@ -75,22 +76,24 @@ const AdminScoresPage = () => {
         id: doc.id,
         ...doc.data()
       }));
-
+  
+      // Créer un nouveau batch pour le statut final
+      const finalBatch = writeBatch(db);
+  
       // Traiter les prédictions par lots de 500
       const batchSize = 500;
       for (let i = 0; i < predictions.length; i += batchSize) {
         const batch = writeBatch(db);
         const currentBatch = predictions.slice(i, i + batchSize);
-
+  
         for (const prediction of currentBatch) {
           const scores = calculateUserScores(prediction, eventStatus);
-          const userScoreRef = doc(db, 'userScores', prediction.userId);
+          const userScoreRef = doc(db, 'userScores', prediction.userId, 'years', '2026');
           batch.set(userScoreRef, {
             ...scores,
-            calculatedAt: new Date().toISOString(),
-            year: '2025'
+            calculatedAt: new Date().toISOString()
           });
-
+  
           // Gérer les badges si top5Completed est true
           if (eventStatus.top5Completed) {
             const userBadgesRef = doc(db, 'userBadges', prediction.userId);
@@ -102,22 +105,27 @@ const AdminScoresPage = () => {
             };
             batch.set(userBadgesRef, badgeData, { merge: true });
           }
-
+  
           setUsersProcessed(prev => prev + 1);
         }
-
+  
         await batch.commit();
       }
-
-      // Mettre à jour le statut du calcul
-      await batch.set(doc(db, 'calculationStatus', 'lastCalculation'), {
+  
+      // Mettre à jour le statut du calcul avec le finalBatch
+      finalBatch.set(doc(db, 'calculationStatus', 'lastCalculation'), {
         timestamp: new Date().toISOString(),
         top15: eventStatus.top15Completed,
         top5: eventStatus.top5Completed
       });
+  
+      await finalBatch.commit();
 
+       // Ajouter le toast de succès ici
+      showToast.success(`Scores calculés avec succès ! ${usersProcessed} utilisateurs traités.`);
     } catch (error) {
       console.error('Erreur lors du calcul des scores:', error);
+      showToast.error('Erreur lors du calcul des scores');
     } finally {
       setCalculating(false);
     }
@@ -133,51 +141,54 @@ const AdminScoresPage = () => {
       totalScore: 0,
       foundMissFrance: false
     };
-
+  
+    // Vérification que toutes les propriétés nécessaires existent
+    if (!prediction || !results) return scores;
+  
     // Calcul pour les qualifiées
-    if (results.qualified && prediction.qualified) {
+    if (Array.isArray(results.qualified) && Array.isArray(prediction.qualified)) {
       scores.qualifiedCorrect = prediction.qualified.filter(
-        p => results.qualified.some(r => r.id === p.id)
+        p => p?.id && results.qualified.some(r => r?.id === p.id)
       ).length;
     }
-
+  
     // Calcul pour le top 5
-    if (results.top5 && prediction.top5) {
+    if (Array.isArray(results.top5) && Array.isArray(prediction.top5)) {
       scores.top5Correct = prediction.top5.filter(
-        (p, index) => results.top5.some(r => r.id === p.id)
+        (p) => p?.id && results.top5.some(r => r?.id === p.id)
       ).length;
-
+  
       scores.top5PositionCorrect = prediction.top5.filter(
-        (p, index) => results.top5[index]?.id === p.id
+        (p, index) => p?.id && results.top5[index]?.id === p.id
       ).length;
     }
-
+  
     // Calcul pour le top 3
-    if (results.top5 && prediction.top3) {
+    if (Array.isArray(results.top5) && Array.isArray(prediction.top3)) {
       const top3Results = results.top5.slice(0, 3);
       scores.top3Correct = prediction.top3.filter(
-        p => top3Results.some(r => r.id === p.id)
+        p => p?.id && top3Results.some(r => r?.id === p.id)
       ).length;
-
+  
       scores.top3PositionCorrect = prediction.top3.filter(
-        (p, index) => top3Results[index]?.id === p.id
+        (p, index) => p?.id && top3Results[index]?.id === p.id
       ).length;
     }
-
-    // Vérifier si l'utilisateur a trouvé Miss France
-    if (results.top5?.[0] && prediction.top3?.[0]) {
+  
+    // Vérification Miss France
+    if (results.top5?.[0]?.id && prediction.top3?.[0]?.id) {
       scores.foundMissFrance = results.top5[0].id === prediction.top3[0].id;
     }
-
+  
     // Calcul du score total
     scores.totalScore = 
-      scores.qualifiedCorrect * 2 + // 2 points par qualifiée
-      scores.top5Correct * 3 +      // 3 points par Miss dans le top 5
-      scores.top5PositionCorrect * 2 + // 2 points bonus si bonne position top 5
-      scores.top3Correct * 4 +      // 4 points par Miss dans le top 3
-      scores.top3PositionCorrect * 3 + // 3 points bonus si bonne position top 3
-      (scores.foundMissFrance ? 10 : 0); // 10 points pour Miss France
-
+      scores.qualifiedCorrect * 2 +       // 2 points par qualifiée
+      scores.top5Correct * 3 +            // 3 points par Miss dans le top 5
+      scores.top5PositionCorrect * 2 +    // 2 points bonus si bonne position top 5
+      scores.top3Correct * 4 +            // 4 points par Miss dans le top 3
+      scores.top3PositionCorrect * 3 +    // 3 points bonus si bonne position top 3
+      (scores.foundMissFrance ? 10 : 0);  // 10 points pour Miss France
+  
     return scores;
   };
 
@@ -186,35 +197,35 @@ const AdminScoresPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden dark:bg-gray-800">
           {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Calcul des scores
             </h1>
           </div>
 
           {/* Statut actuel */}
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold mb-4">État actuel</h2>
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-semibold mb-4 dark:text-white">État actuel</h2>
             <div className="space-y-2">
               <p>
-                <span className="font-medium">Top 15 :</span>{' '}
+                <span className="font-medium dark:text-white">Top 15 :</span>{' '}
                 <span className={eventStatus?.top15Completed ? 'text-green-600' : 'text-amber-600'}>
                   {eventStatus?.top15Completed ? 'Complété' : 'En attente'}
                 </span>
               </p>
               <p>
-                <span className="font-medium">Top 5 :</span>{' '}
+                <span className="font-medium dark:text-white">Top 5 :</span>{' '}
                 <span className={eventStatus?.top5Completed ? 'text-green-600' : 'text-amber-600'}>
                   {eventStatus?.top5Completed ? 'Complété' : 'En attente'}
                 </span>
               </p>
               {lastCalculation && (
-                <p>
-                  <span className="font-medium">Dernier calcul :</span>{' '}
+                <p className='dark:text-white'>
+                  <span className="font-medium dark:text-white">Dernier calcul :</span>{' '}
                   {new Date(lastCalculation.timestamp).toLocaleString()}
                 </p>
               )}
