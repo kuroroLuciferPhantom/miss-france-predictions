@@ -14,6 +14,9 @@ import toast from 'react-hot-toast';
 import { showToast } from '../../components/ui/Toast';
 import { useNavigate } from 'react-router-dom';
 import PointsSystem from '../../components/PointsSystem';
+import GroupInfoAccordion from '../../components/groups/GroupInfoAccordion';
+import GroupInfoDesktop from '../../components/groups/GroupInfoDesktop';
+import GroupHeader from '../../components/groups/GroupHeader';
 import {
   doc,
   getDoc,
@@ -29,8 +32,6 @@ import {
   updateDoc,
   deleteDoc
 } from 'firebase/firestore';
-
-
 
 const ShareInviteCode = ({ code }) => {
   const [copied, setCopied] = useState(false);
@@ -184,10 +185,10 @@ const GroupDetailPage = () => {
   const [group, setGroup] = useState(null);
   const [messages, setMessages] = useState([]);
   const [eventStarted, setEventStarted] = useState(false);
-  const [currentTab, setCurrentTab] = useState('stats'); // Ajout du nouvel état
-  const { user } = useAuthContext(); // Ajout de l'import AuthContext
+  const [currentTab, setCurrentTab] = useState('stats');
+  const { user } = useAuthContext();
   const [predictions, setPredictions] = useState([]);
-  const [isAdmin, setIsAdmin] = useState(false); // Initialiser à false par défaut
+  const [isAdmin, setIsAdmin] = useState(false);
   const [userHasPredicted, setUserHasPredicted] = useState(false);
   const [hasCompletedQuiz, setHasCompletedQuiz] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
@@ -207,7 +208,7 @@ const GroupDetailPage = () => {
           const adminDoc = await getDoc(doc(db, 'users', groupData.admin));
           const adminData = adminDoc.data();
 
-          // Récupérer les membres de la sous-collection 'members'
+          // Récupérer les membres
           const membersRef = collection(db, 'groups', groupId, 'members');
           const membersSnapshot = await getDocs(membersRef);
           const memberPromises = membersSnapshot.docs.map(async (doc) => {
@@ -231,17 +232,15 @@ const GroupDetailPage = () => {
 
           const updatedMembers = await Promise.all(memberPromises);    
 
-          // Vérifier l'état de l'événement
+          // Vérifier si l'événement a commencé
           const eventDoc = await getDoc(doc(db, 'events', 'missfranceEventStatus'));
           if (eventDoc.exists()) {
             setEventStarted(eventDoc.data().started || false);
           }
 
-          // Une prédiction est valide pour les stats si elle est complète
           const completedPredictions = updatedMembers.filter(m => m.prediction?.isComplete).length;
           const participationRate = (completedPredictions / updatedMembers.length) * 100;
 
-          // Pour l'affichage, on garde toutes les prédictions
           const allPredictions = updatedMembers
             .filter(m => m.prediction)
             .map(m => ({
@@ -250,7 +249,6 @@ const GroupDetailPage = () => {
               visibility: m.predictionVisibility
             }));
 
-          // Une prédiction est valide pour les tendances/favorites si elle est publique ou si l'émission a commencé
           const validPredictionsForStats = allPredictions.filter(p =>
             p.isComplete && (p.isPublic || eventStarted)
           );
@@ -283,35 +281,20 @@ const GroupDetailPage = () => {
   }, [groupId, user]);
 
   useEffect(() => {
-    if (!groupId || !user?.uid) {
-      console.log("No groupId or user not authenticated");
-      return;
-    }
+    if (!groupId || !user?.uid) return;
 
     const groupRef = doc(db, "groups", groupId);
 
-    // Vérifier si l'utilisateur est membre du groupe avant de récupérer les messages
     getDoc(groupRef).then(async (groupSnap) => {
-      if (!groupSnap.exists()) {
-        console.log("Group does not exist");
-        return;
-      }
+      if (!groupSnap.exists()) return;
 
       const groupData = groupSnap.data();
-
-      // Récupérer la sous-collection "members" pour vérifier si l'utilisateur en fait partie
       const membersRef = collection(db, "groups", groupId, "members");
       const memberSnap = await getDocs(membersRef);
-
-      // Vérifier si l'utilisateur est dans la liste des membres
       const isMember = memberSnap.docs.some((doc) => doc.id === user.uid);
 
-      if (groupData.admin !== user.uid && !isMember) {
-        console.log("User is not a member of this group");
-        return;
-      }
+      if (groupData.admin !== user.uid && !isMember) return;
 
-      // Si l'utilisateur est membre, on récupère les messages
       const chatRef = collection(db, "groups", groupId, "chat");
       const q = query(chatRef, orderBy("timestamp", "desc"), limit(50));
 
@@ -325,9 +308,7 @@ const GroupDetailPage = () => {
           setMessages(newMessages.reverse());
         },
         (error) => {
-          console.error("Erreur détaillée lors de l'écoute des messages:", error);
-          if (error.code) console.log("Error code:", error.code);
-          if (error.message) console.log("Error message:", error.message);
+          console.error("Erreur lors de l'écoute des messages:", error);
         }
       );
 
@@ -350,30 +331,19 @@ const GroupDetailPage = () => {
   }, [groupId, user?.uid]);
 
   const handleSendMessage = async (text) => {
-    if (!groupId || !user?.uid) {
-      console.log("No groupId or user not authenticated");
-      return;
-    }
+    if (!groupId || !user?.uid) return;
 
     try {
       const groupRef = doc(db, "groups", groupId);
       const groupSnap = await getDoc(groupRef);
 
-      if (!groupSnap.exists()) {
-        console.log("Group does not exist");
-        return;
-      }
+      if (!groupSnap.exists()) return;
 
       const groupData = groupSnap.data();
-
-      // Vérifier si l'utilisateur est membre en vérifiant la sous-collection members
       const memberRef = doc(db, "groups", groupId, "members", user.uid);
       const memberSnap = await getDoc(memberRef);
 
-      if (groupData.admin !== user.uid && !memberSnap.exists()) {
-        console.log("User is not a member of this group");
-        return;
-      }
+      if (groupData.admin !== user.uid && !memberSnap.exists()) return;
 
       const messagesRef = collection(db, "groups", groupId, "chat");
       await addDoc(messagesRef, {
@@ -383,32 +353,18 @@ const GroupDetailPage = () => {
         timestamp: serverTimestamp(),
       });
     } catch (error) {
-      console.error("Erreur détaillée:", error);
-      if (error.code) console.log("Error code:", error.code);
-      if (error.message) console.log("Error message:", error.message);
+      console.error("Erreur lors de l'envoi du message:", error);
     }
   };
 
-
-  if (!group) {
-    return (
-      <div className="flex justify-center items-center min-h-screen dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 dark:border-pink-400 border-t-transparent"></div>
-      </div>
-    );
-  }
-
-  // Fonction pour renommer le groupe
   const handleRenameGroup = async () => {
     if (!newGroupName.trim()) return;
-
     try {
       const groupRef = doc(db, 'groups', groupId);
       await updateDoc(groupRef, {
         name: newGroupName.trim()
       });
 
-      // Mettre à jour le state local
       setGroup(prev => ({
         ...prev,
         name: newGroupName.trim()
@@ -422,12 +378,11 @@ const GroupDetailPage = () => {
     }
   };
 
-  // Fonction pour supprimer le groupe
   const handleDeleteGroup = async () => {
     try {
       await deleteDoc(doc(db, 'groups', groupId));
       toast.success('Groupe supprimé avec succès');
-      navigate('/dashboard');  // Rediriger vers le dashboard
+      navigate('/dashboard');
     } catch (error) {
       console.error('Erreur lors de la suppression du groupe:', error);
       toast.error('Erreur lors de la suppression du groupe');
@@ -442,36 +397,25 @@ const GroupDetailPage = () => {
       const membersSnapshot = await getDocs(collection(groupRef, 'members'));
       const memberCount = membersSnapshot.size;
 
-      // Si c'est le dernier membre
       if (memberCount === 1 && user.uid === groupData.admin) {
-        console.log('Last member leaving group');
-        // Supprimer le groupe entier
         await deleteDoc(groupRef);
         navigate('/dashboard');
         showToast.success('Groupe supprimé avec succès');
         return;
       }
 
-      // Si c'est l'admin qui part
       if (user.uid === groupData.admin) {
-        console.log('Admin leaving group');
-        // Trouver le premier membre non-admin
         const members = membersSnapshot.docs
           .filter(doc => doc.id !== user.uid)
           .map(doc => ({ id: doc.id, ...doc.data() }));
 
         if (members.length > 0) {
-          console.log('Promoting new admin:', members[0]);
-          // Promouvoir le premier membre comme admin
           const newAdmin = members[0];
           await updateDoc(groupRef, { admin: newAdmin.id });
         }
       }
 
-      console.log('Removing user from group');
-      // Supprimer le membre
       await deleteDoc(doc(groupRef, 'members', user.uid));
-
       navigate('/dashboard');
       showToast.success('Vous avez quitté le groupe avec succès');
     } catch (error) {
@@ -562,50 +506,43 @@ const GroupDetailPage = () => {
     }
   };
 
+  if (!group) {
+    return (
+      <div className="flex justify-center items-center min-h-screen dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 dark:border-pink-400 border-t-transparent"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* En-tête du groupe simplifié */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm mb-8">
-          <div className="px-6 py-5">
-            {/* Titre et description */}
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{group?.name}</h1>
-            {group?.description && (
-              <p className="mt-2 text-gray-500 dark:text-gray-400">{group.description}</p>
-            )}
+        {/* En-tête du groupe */}
+        <GroupHeader 
+  group={group}
+  isAdmin={isAdmin}
+  onRename={() => {
+    setNewGroupName(group.name);
+    setShowRenameModal(true);
+  }}
+  onLeave={() => setIsLeaveModalOpen(true)}
+  onDelete={() => setShowDeleteConfirm(true)}
+  ShareInviteCode={ShareInviteCode}
+  MembersList={MembersList}
+  GroupSettings={GroupSettings}
+  PointsSystem={PointsSystem}
+/>
 
-            {/* Infos supplémentaires */}
-            <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <div>
-                <span className="font-medium dark:text-gray-300">Créé par :</span>{' '}
-                {group?.adminUsername || 'Administrateur'}
-              </div>
-              <div>
-                <span className="font-medium dark:text-gray-300">Créé le :</span>{' '}
-                {group?.createdAt ? new Date(group.createdAt).toLocaleDateString('fr-FR', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric'
-                }) : ''}
-              </div>
-              <div>
-                <span className="font-medium dark:text-gray-300">Membres :</span>{' '}
-                {group?.members?.length || 0} participant{group?.members?.length !== 1 ? 's' : ''}
-              </div>
-              <div>
-                <span className="font-medium dark:text-gray-300">Prédictions complètes :</span>{' '}
-                {group?.members?.filter(m => m.hasSubmitted)?.length || 0} / {group?.members?.length || 0}
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Les composants de colonnes sont déjà adaptés au mode sombre séparément */}
-          <div className="lg:col-span-1 space-y-6">
-            <MembersList members={group.members} />
-            <ShareInviteCode code={group.inviteCode} />
-            <GroupSettings
+          {/* Colonne de gauche - Info du groupe */}
+          <div className="lg:col-span-1">
+            {/* Version mobile avec accordéon */}
+            
+            
+            {/* Version desktop */}
+            <GroupInfoDesktop
+              group={group}
               isAdmin={isAdmin}
               onRename={() => {
                 setNewGroupName(group.name);
@@ -613,8 +550,11 @@ const GroupDetailPage = () => {
               }}
               onLeave={() => setIsLeaveModalOpen(true)}
               onDelete={() => setShowDeleteConfirm(true)}
+              ShareInviteCode={ShareInviteCode}
+              MembersList={MembersList}
+              GroupSettings={GroupSettings}
+              PointsSystem={PointsSystem}
             />
-            <PointsSystem />
 
             <ConfirmLeaveModal
               isOpen={isLeaveModalOpen}
