@@ -50,7 +50,7 @@ const RankingPage = () => {
     };
 
     checkEventStatus();
-    
+
     if (user) {
       loadExistingPredictions().then(hasPronostics => {
         if (hasPronostics) {
@@ -67,12 +67,12 @@ const RankingPage = () => {
       showToast.error('Vous avez déjà sélectionné 15 Miss. Retirez-en une pour en ajouter une nouvelle.');
       return;
     }
-  
+
     // Déterminer l'étape en fonction des sélections actuelles
-    const currentStep = top3.length < 3 ? 'top3' 
-                     : top5.length < 2 ? 'top5'
-                     : 'qualified';
-  
+    const currentStep = top3.length < 3 ? 'top3'
+      : top5.length < 2 ? 'top5'
+        : 'qualified';
+
     if (currentStep === 'top3' && top3.length < 3) {
       setTop3([...top3, miss]);
       setAvailableMisses(availableMisses.filter(m => m.id !== miss.id));
@@ -146,7 +146,7 @@ const RankingPage = () => {
       setIsSaving(false);
     }
   };
-  
+
   const loadExistingPredictions = async () => {
     try {
       const predictionsRef = collection(db, 'predictions');
@@ -195,13 +195,13 @@ const RankingPage = () => {
     return missData.map(miss => {
       let selectionStatus = null;
       let rank = null;
-  
+
       // Vérifier top3
       const top3Index = top3.findIndex(m => m.id === miss.id);
       if (top3Index !== -1) {
         selectionStatus = 'top3';
         rank = titles[top3Index]; // "Miss France 2025", "1ère Dauphine", "2ème Dauphine"
-      } 
+      }
       // Vérifier top5
       const top5Index = top5.findIndex(m => m.id === miss.id);
       if (top5Index !== -1) {
@@ -212,7 +212,7 @@ const RankingPage = () => {
       if (qualified.find(m => m.id === miss.id)) {
         selectionStatus = 'qualified';
       }
-  
+
       return {
         ...miss,
         isSelected: !!selectionStatus,
@@ -243,10 +243,10 @@ const RankingPage = () => {
     setIsSaveSuccessOpen(false);
     setShowShareComponent(true);
   };
-  
+
   const handleDashboard = () => {
     navigate('/dashboard');
-  };  
+  };
 
   if (isLoading) {
     return (
@@ -262,17 +262,17 @@ const RankingPage = () => {
         <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 text-center">
             <div className="mb-6">
-              <svg 
-                className="mx-auto h-16 w-16 text-red-500 dark:text-red-400" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className="mx-auto h-16 w-16 text-red-500 dark:text-red-400"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                 />
               </svg>
             </div>
@@ -280,7 +280,7 @@ const RankingPage = () => {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
               L'élection a commencé
             </h2>
-            
+
             <p className="text-gray-600 dark:text-gray-300 mb-8">
               Il n'est plus possible de modifier ou d'ajouter des pronostics car l'élection Miss France 2026 a débuté.
             </p>
@@ -304,7 +304,7 @@ const RankingPage = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
-            <button 
+            <button
               onClick={handleBack}
               className="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             >
@@ -319,7 +319,24 @@ const RankingPage = () => {
             Sélectionnez votre top 5 et les 10 autres Miss qualifiées
           </p>
         </div>
-  
+
+        <div className="mb-8">
+          <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-orange-400 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-orange-700 dark:text-orange-400">
+                  Les photos des candidates Miss France sont la propriété exclusive de la Société Miss France / Sipa Press et ne peuvent être reproduites sans autorisation
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
@@ -339,15 +356,15 @@ const RankingPage = () => {
             </div>
           </div>
         </div>
-  
+
         {/* Onglets */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-2 mb-6">
           <div className="flex space-x-2">
             <button
               onClick={() => setActiveTab('selection')}
               className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-colors
-                ${activeTab === 'selection' 
-                  ? 'bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 text-white' 
+                ${activeTab === 'selection'
+                  ? 'bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 text-white'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
             >
@@ -356,8 +373,8 @@ const RankingPage = () => {
             <button
               onClick={() => setActiveTab('selections')}
               className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-colors relative
-                ${activeTab === 'selections' 
-                  ? 'bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 text-white' 
+                ${activeTab === 'selections'
+                  ? 'bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 text-white'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
             >
@@ -368,7 +385,7 @@ const RankingPage = () => {
             </button>
           </div>
         </div>
-  
+
         {/* Contenu basé sur l'onglet actif */}
         {activeTab === 'selection' ? (
           <>
@@ -389,7 +406,7 @@ const RankingPage = () => {
                     Voir toutes les Miss
                   </button>
                 </div>
-  
+
                 <div className="relative">
                   <input
                     type="text"
@@ -405,17 +422,17 @@ const RankingPage = () => {
                   </div>
                 </div>
               </div>
-  
+
               <div className="p-4 overflow-y-auto max-h-[calc(100vh-500px)]">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {filteredAvailableMisses.length > 0 ? 
+                  {filteredAvailableMisses.length > 0 ?
                     filteredAvailableMisses.map(miss => (
                       <MissCard
                         key={miss.id}
                         miss={miss}
                         onSelect={() => handleMissSelect(miss)}
                         isSelected={false}
-                        onRemove={() => {}}
+                        onRemove={() => { }}
                       />
                     )) : (
                       <div className="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">
@@ -434,7 +451,7 @@ const RankingPage = () => {
               <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-lg font-medium text-gray-900 dark:text-white">Vos Sélections</h2>
               </div>
-              
+
               <div className="p-4 space-y-6">
                 {/* Top 5 */}
                 <div>
@@ -480,7 +497,7 @@ const RankingPage = () => {
                     ))}
                   </div>
                 </div>
-  
+
                 {/* Qualifiées */}
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
@@ -509,7 +526,7 @@ const RankingPage = () => {
             </div>
           </>
         )}
-  
+
         {/* Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6 space-y-3 sm:space-y-0">
           {/* Switch Public/Privé */}
@@ -532,15 +549,15 @@ const RankingPage = () => {
               </span>
             </label>
           </div>
-  
+
           {/* Bouton Valider */}
           <div className="flex space-x-4">
             <button
               onClick={() => setIsConfirmationOpen(true)}
               disabled={isSaving}
               className={`px-4 py-1.5 sm:px-6 sm:py-2 rounded-lg flex items-center justify-center text-sm sm:text-base 
-                ${isSaving 
-                  ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed' 
+                ${isSaving
+                  ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                   : 'bg-gradient-to-r from-pink-500 to-purple-500 dark:from-pink-600 dark:to-purple-600 text-white hover:from-pink-600 hover:to-purple-600 dark:hover:from-pink-700 dark:hover:to-purple-700'}
               `}
             >
@@ -548,17 +565,17 @@ const RankingPage = () => {
             </button>
           </div>
         </div>
-  
+
         {/* Footer section avec GameRules et PointsSystem toujours visibles */}
         <GameRules />
         <PointsSystem />
-          
+
         <ConfirmationModal
           isOpen={isConfirmationOpen}
           onClose={() => setIsConfirmationOpen(false)}
           onConfirm={handleSubmit}
         />
-        
+
         <SaveSuccessModal
           isOpen={isSaveSuccessOpen}
           onClose={() => setIsSaveSuccessOpen(false)}

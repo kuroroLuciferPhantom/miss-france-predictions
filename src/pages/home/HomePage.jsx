@@ -21,20 +21,48 @@ const scrollVariants = {
 };
 
 const Countdown = () => {
-  const electionDate = new Date('2025-12-14T21:00:00');
-  const now = new Date();
-  const difference = electionDate - now;
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
 
-  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const electionDate = new Date('2025-12-14T21:00:00');
+      const now = new Date();
+      const difference = electionDate - now;
+
+      setTimeLeft({
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60)
+      });
+    };
+
+    // Calculer immédiatement
+    calculateTimeLeft();
+
+    // Mettre à jour toutes les secondes
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    // Nettoyer l'intervalle quand le composant est démonté
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="bg-pink-50 dark:bg-pink-900/20 py-3 px-6 rounded-lg flex items-center justify-center space-x-4">
       <span className="text-pink-600 dark:text-pink-400 font-medium">Élection Miss France 2026 dans :</span>
       <div className="flex space-x-2 text-pink-600 dark:text-pink-400 font-bold">
-        <span>{days} jours</span>
+        <span>{timeLeft.days} jours</span>
         <span>et</span>
-        <span>{hours} heures</span>
+        <span>{timeLeft.hours} heures</span>
+        <span>et</span>
+        <span>{timeLeft.minutes} minutes</span>
+        <span>et</span>
+        <span>{timeLeft.seconds} secondes</span>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { Trophy } from 'lucide-react';
 const Leaderboard = () => {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lastCalculation, setLastCalculation] = useState(null);
   const [lastDoc, setLastDoc] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [pageSize] = useState(10);
@@ -77,6 +78,23 @@ const Leaderboard = () => {
     fetchPlayers();
   }, []);
 
+  useEffect(() => {
+    const checkCalculationStatus = async () => {
+      try {
+        const statusDoc = await getDoc(doc(db, 'calculationStatus', 'lastCalculation'));
+        if (statusDoc.exists()) {
+          setLastCalculation(statusDoc.data());
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error('Erreur lors de la vérification du statut:', error);
+        setLoading(false);
+      }
+    };
+
+    checkCalculationStatus();
+  }, []);
+
   const handleLoadMore = () => {
     fetchPlayers(true);
   };
@@ -87,6 +105,36 @@ const Leaderboard = () => {
       player.username?.toLowerCase().includes(searchTerm)
     );
   });
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!lastCalculation) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Classement général</h2>
+        </div>
+        <div className="p-8 text-center">
+          <p className="text-gray-600 dark:text-gray-400">
+            Le classement sera disponible après le résultat des 15 Miss qualifiées
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow">

@@ -13,6 +13,7 @@ import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import toast from 'react-hot-toast';
 import { showToast } from '../../components/ui/Toast';
 import { useNavigate } from 'react-router-dom';
+import PointsSystem from '../../components/PointsSystem';
 import {
   doc,
   getDoc,
@@ -613,6 +614,7 @@ const GroupDetailPage = () => {
               onLeave={() => setIsLeaveModalOpen(true)}
               onDelete={() => setShowDeleteConfirm(true)}
             />
+            <PointsSystem />
 
             <ConfirmLeaveModal
               isOpen={isLeaveModalOpen}
