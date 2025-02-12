@@ -9,7 +9,6 @@ const GroupInfoDesktop = ({
   ShareInviteCode,
   MembersList,
   GroupSettings,
-  PointsSystem 
 }) => {
   return (
     <div className="hidden lg:block space-y-6"> {/* Only show on desktop */}
@@ -22,7 +21,6 @@ const GroupInfoDesktop = ({
         onDelete={onDelete}
         membersCount={group.members.length}
       />
-      <PointsSystem />
     </div>
   );
 };

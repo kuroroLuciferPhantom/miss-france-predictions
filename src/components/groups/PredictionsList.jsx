@@ -3,6 +3,7 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { db } from '../../config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import PointsSystem from './../PointsSystem';
 
 const PredictionsList = ({ predictions, eventStarted }) => {
   const { user } = useAuthContext();
@@ -217,6 +218,7 @@ const PredictionsList = ({ predictions, eventStarted }) => {
           )}
         </div>
       ))}
+      <PointsSystem />
     </div>
   );
 };

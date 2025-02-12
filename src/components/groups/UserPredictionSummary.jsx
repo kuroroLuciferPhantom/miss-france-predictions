@@ -23,60 +23,107 @@ const UserPredictionSummary = ({ prediction, groupId, eventStarted }) => {
     }
   }, [eventStarted]);
 
-  const isEliminated = (miss) => {
-    if (!eventResults?.qualified) return false;
-    return !eventResults.qualified.some(m => m.id === miss.id);
-  };
-
   if (!prediction) {
-    // ... code inchangé pour l'état sans prédiction ...
+    return (
+      <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-900/10 dark:to-purple-900/10 rounded-xl p-6">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Pas encore de pronostics ?
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Faites vos pronostics pour le concours Miss France et comparez vos résultats avec les autres membres du groupe !
+          </p>
+          <Link
+            to="/predictions"
+            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium rounded-lg transition-colors"
+          >
+            Commencer mes pronostics
+            <svg 
+              className="ml-2 w-4 h-4" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth="2" 
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
+            </svg>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const total = (prediction.top3?.length || 0) + 
                 (prediction.top5?.length || 0) + 
                 (prediction.qualified?.length || 0);
 
+  const isComplete = total === 15;
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-        <h3 className="font-medium text-gray-900 dark:text-white">Vos pronostics</h3>
-        <div className="flex items-center gap-2">
-          {total === 15 ? (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
+      <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
+            Vos pronostics
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Top 15 Miss France
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {!eventStarted && (
+            <div className="flex items-center gap-2 text-sm">
+              <div className="flex h-2 w-24 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-pink-500 to-purple-500 transition-all"
+                  style={{ width: `${(total / 15) * 100}%` }}
+                />
+              </div>
+              <span className="text-gray-600 dark:text-gray-400 font-medium">
+                {total}/15
+              </span>
+            </div>
+          )}
+
+          {isComplete ? (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
               Complété ✓
             </span>
-          ) : !eventStarted && (
-            <>
-              <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">
-                {total}/15 sélections
-              </span>
-              <Link 
-                to={`/predictions`}
-                className="text-sm text-pink-500 dark:text-pink-400 hover:text-pink-600 dark:hover:text-pink-300 font-medium"
-              >
-                Continuer →
-              </Link>
-            </>
-          )}
+          ) : !eventStarted ? (
+            <Link 
+              to="/predictions"
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              Continuer
+              <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          ) : null}
         </div>
       </div>
-  
-      <div className="p-4 space-y-4">
-        {/* Paramètres - ne s'affichent que si l'événement n'a pas commencé */}
-        {!eventStarted && (
-          <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700 text-sm">
-            <span className="text-gray-600 dark:text-gray-400">
-              Visibilité: {prediction.isPublic ? 'Public' : 'Privé'}
+
+      {!eventStarted && (
+        <div className="px-6 py-3 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <span>Visibilité :</span>
+            <span className={`font-medium ${prediction.isPublic ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
+              {prediction.isPublic ? 'Public' : 'Privé'}
             </span>
-            <Link 
-              to={`/group/${groupId}/prediction`}
-              className="text-pink-500 dark:text-pink-400 hover:text-pink-600 dark:hover:text-pink-300 font-medium"
-            >
-              Modifier
-            </Link>
           </div>
-        )}
-      </div>
+          <Link 
+            to={`/group/${groupId}/prediction`}
+            className="text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
+          >
+            Modifier votre prédiction
+          </Link>
+        </div>
+      )}
     </div>
   );
 };

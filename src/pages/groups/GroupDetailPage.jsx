@@ -14,7 +14,6 @@ import toast from 'react-hot-toast';
 import { showToast } from '../../components/ui/Toast';
 import { useNavigate } from 'react-router-dom';
 import PointsSystem from '../../components/PointsSystem';
-import GroupInfoAccordion from '../../components/groups/GroupInfoAccordion';
 import GroupInfoDesktop from '../../components/groups/GroupInfoDesktop';
 import GroupHeader from '../../components/groups/GroupHeader';
 import {
@@ -230,7 +229,7 @@ const GroupDetailPage = () => {
             };
           });
 
-          const updatedMembers = await Promise.all(memberPromises);    
+          const updatedMembers = await Promise.all(memberPromises);
 
           // Vérifier si l'événement a commencé
           const eventDoc = await getDoc(doc(db, 'events', 'missfranceEventStatus'));
@@ -518,28 +517,27 @@ const GroupDetailPage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* En-tête du groupe */}
-        <GroupHeader 
-  group={group}
-  isAdmin={isAdmin}
-  onRename={() => {
-    setNewGroupName(group.name);
-    setShowRenameModal(true);
-  }}
-  onLeave={() => setIsLeaveModalOpen(true)}
-  onDelete={() => setShowDeleteConfirm(true)}
-  ShareInviteCode={ShareInviteCode}
-  MembersList={MembersList}
-  GroupSettings={GroupSettings}
-  PointsSystem={PointsSystem}
-/>
+        <GroupHeader
+          group={group}
+          isAdmin={isAdmin}
+          onRename={() => {
+            setNewGroupName(group.name);
+            setShowRenameModal(true);
+          }}
+          onLeave={() => setIsLeaveModalOpen(true)}
+          onDelete={() => setShowDeleteConfirm(true)}
+          ShareInviteCode={ShareInviteCode}
+          MembersList={MembersList}
+          GroupSettings={GroupSettings}
+        />
 
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Colonne de gauche - Info du groupe */}
           <div className="lg:col-span-1">
             {/* Version mobile avec accordéon */}
-            
-            
+
+
             {/* Version desktop */}
             <GroupInfoDesktop
               group={group}
@@ -553,7 +551,6 @@ const GroupDetailPage = () => {
               ShareInviteCode={ShareInviteCode}
               MembersList={MembersList}
               GroupSettings={GroupSettings}
-              PointsSystem={PointsSystem}
             />
 
             <ConfirmLeaveModal
