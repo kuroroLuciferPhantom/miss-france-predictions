@@ -51,7 +51,7 @@ const UserPredictionSummary = ({ prediction, groupId, eventStarted }) => {
                 {total}/15 sélections
               </span>
               <Link 
-                to={`/group/${groupId}/prediction`}
+                to={`/predictions`}
                 className="text-sm text-pink-500 dark:text-pink-400 hover:text-pink-600 dark:hover:text-pink-300 font-medium"
               >
                 Continuer →
