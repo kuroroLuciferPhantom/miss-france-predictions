@@ -15,7 +15,7 @@ const JoinGroupPage = () => {
   const { user } = useAuthContext();
 
   useEffect(() => {
-    document.title = "Rejoindre un groupe - Miss'Pronos";
+    document.title = "Rejoindre un groupe - Miss'Prono";
     checkGroupLimit();
   }, []);
 

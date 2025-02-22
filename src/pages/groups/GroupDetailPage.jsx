@@ -531,13 +531,9 @@ const GroupDetailPage = () => {
           GroupSettings={GroupSettings}
         />
 
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
           {/* Colonne de gauche - Info du groupe */}
           <div className="lg:col-span-1">
-            {/* Version mobile avec accordéon */}
-
-
             {/* Version desktop */}
             <GroupInfoDesktop
               group={group}

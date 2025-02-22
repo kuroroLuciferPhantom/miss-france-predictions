@@ -12,7 +12,7 @@ const PolitiqueConfidentialitePage = () => {
             
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 dark:text-white">Dernière mise à jour</h2>
-              <p className="text-gray-600 dark:text-gray-300">[Date du jour]</p>
+              <p className="text-gray-600 dark:text-gray-300">22/02/2025</p>
             </section>
 
             <section>
@@ -88,7 +88,7 @@ const PolitiqueConfidentialitePage = () => {
               <p className="text-gray-600 dark:text-gray-300">
                 Pour toute question ou demande concernant vos données personnelles, vous pouvez nous contacter à :
               </p>
-              <p className="text-gray-600 font-semibold dark:text-gray-300">📧 [Ton adresse email de contact]</p>
+              <p className="text-gray-600 font-semibold dark:text-gray-300">📧 kuroro.lucifer.phantom@gmail.com</p>
             </section>
 
             <section>

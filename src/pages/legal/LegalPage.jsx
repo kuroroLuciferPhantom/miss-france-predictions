@@ -12,7 +12,7 @@ const LegalPage = () => {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 dark:text-white">Site Indépendant</h2>
               <p className="text-gray-600 dark:text-gray-300">
-                Miss'Pronos est un site indépendant et n'est en aucun cas affilié à Miss France SAS ou à toute autre entité officielle du concours Miss France. 
+                Miss'Prono est un site indépendant et n'est en aucun cas affilié à Miss France SAS ou à toute autre entité officielle du concours Miss France. 
                 Ce site est une initiative de fans permettant aux passionnés de partager leurs pronostics.
               </p>
             </section>
@@ -22,14 +22,13 @@ const LegalPage = () => {
               <p className="text-gray-600 dark:text-gray-300">
                 Les photos utilisées sur ce site restent la propriété exclusive de leurs auteurs respectifs. 
                 Si vous êtes propriétaire d'une image et souhaitez qu'elle soit retirée, veuillez nous contacter.
-                Aucune image protégée ne sera utilisée sans autorisation explicite.
               </p>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 dark:text-white">Protection des Données</h2>
               <p className="text-gray-600 dark:text-gray-300">
-                Les données personnelles collectées (nom, adresse email, etc.) sont uniquement utilisées pour le bon fonctionnement du site et la gestion des comptes utilisateurs. 
+                Les données personnelles collectées (pseudo, email) sont uniquement utilisées pour le bon fonctionnement du site et la gestion des comptes utilisateurs. 
                 Conformément au Règlement Général sur la Protection des Données (RGPD), vous avez un droit d'accès, de rectification et de suppression de vos données. 
                 Pour exercer ce droit, contactez-nous à l'adresse mentionnée ci-dessous.
               </p>
@@ -38,7 +37,7 @@ const LegalPage = () => {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 dark:text-white">Responsabilité</h2>
               <p className="text-gray-600 dark:text-gray-300">
-                Miss'Pronos ne peut être tenu responsable des contenus publiés par ses utilisateurs, ni des erreurs ou omissions présentes sur le site. 
+                Miss'Prono ne peut être tenu responsable des contenus publiés par ses utilisateurs, ni des erreurs ou omissions présentes sur le site. 
                 Les informations partagées sont purement indicatives et n'ont aucune valeur contractuelle.
               </p>
             </section>
@@ -47,9 +46,9 @@ const LegalPage = () => {
               <h2 className="text-xl font-semibold text-gray-900 mb-4 dark:text-white">Hébergement</h2>
               <p className="text-gray-600 dark:text-gray-300">
                 Ce site est hébergé par : <br/>
-                [Nom de l'hébergeur] <br/>
-                [Adresse de l'hébergeur] <br/>
-                [Contact de l'hébergeur]
+                PlanetHoster <br/>
+                4416 Louis B. Mayer <br/>
+                support@planethoster.info
               </p>
             </section>
 
@@ -57,8 +56,7 @@ const LegalPage = () => {
               <h2 className="text-xl font-semibold text-gray-900 mb-4 dark:text-white">Contact</h2>
               <p className="text-gray-600 dark:text-gray-300">
                 Pour toute question ou réclamation concernant le site ou les données personnelles, vous pouvez nous contacter via : <br/>
-                Email : [adresse email de contact] <br/>
-                Adresse postale : [adresse complète, si nécessaire]
+                Email : kuroro.lucifer.phantom@gmail.com <br/>
               </p>
             </section>
           </div>

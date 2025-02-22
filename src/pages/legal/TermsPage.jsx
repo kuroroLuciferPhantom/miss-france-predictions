@@ -12,7 +12,7 @@ const TermsPage = () => {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Utilisation du Service</h2>
               <p className="text-gray-600 mb-4 dark:text-gray-300">
-                En utilisant Miss'Pronos, vous acceptez les présentes conditions d'utilisation.
+                En utilisant Miss'Prono, vous acceptez les présentes conditions d'utilisation.
                 Le service est fourni à titre gratuit et dans un but ludique et communautaire.
               </p>
               <ul className="list-disc pl-5 text-gray-600 space-y-2 dark:text-gray-300">
@@ -35,7 +35,7 @@ const TermsPage = () => {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Limitation de Responsabilité</h2>
               <p className="text-gray-600 dark:text-gray-300">
-                Miss'Pronos ne peut être tenu responsable des erreurs dans les informations fournies.
+                Miss'Prono ne peut être tenu responsable des erreurs dans les informations fournies.
                 Le site peut être indisponible temporairement pour maintenance ou mises à jour.
                 Les utilisateurs sont seuls responsables de leurs choix et interprétations des données affichées sur le site.
               </p>
@@ -61,8 +61,7 @@ const TermsPage = () => {
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Contact</h2>
               <p className="text-gray-600 dark:text-gray-300">
                 Pour toute question ou réclamation concernant ces conditions, veuillez nous contacter à : <br/>
-                Email : [adresse email de contact] <br/>
-                Adresse postale : [adresse complète, si nécessaire]
+                Email : kuroro.lucifer.phantom@gmail.com <br/>
               </p>
             </section>
           </div>

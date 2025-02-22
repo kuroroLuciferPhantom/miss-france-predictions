@@ -3,13 +3,13 @@ import { FacebookIcon, XIcon } from 'react-share';
 
 const SharePredictions = () => {
   const pageUrl = window.location.href;
-  const shareText = "Je viens de faire mes pronostics pour Miss France 2026 ! Viens faire les tiens sur Miss'Pronos 👑";
+  const shareText = "Je viens de faire mes pronostics pour Miss France 2026 ! Viens faire les tiens sur Miss'Prono 👑";
 
   const handleShare = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Miss'Pronos - Mes pronostics",
+          title: "Miss'Prono - Mes pronostics",
           text: shareText,
           url: pageUrl,
         });

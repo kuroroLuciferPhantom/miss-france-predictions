@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Pages publiques -->
+  <url>
+    <loc>https://miss-prono.fr/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <url>
+    <loc>https://miss-prono.fr/login</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://miss-prono.fr/signup</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Pages légales -->
+  <url>
+    <loc>https://miss-prono.fr/mentions-legales</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <url>
+    <loc>https://miss-prono.fr/conditions-utilisation</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <url>
+    <loc>https://miss-prono.fr/confidentialite</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <url>
+    <loc>https://miss-prono.fr/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Note: Les routes protégées suivantes ne sont pas incluses car elles nécessitent une authentification:
+       /dashboard
+       /predictions
+       /onboarding
+       /group/create
+       /group/join
+       /group/:groupId
+       /quiz-miss
+       /admin/results
+       /admin/scores
+  -->
+</urlset>

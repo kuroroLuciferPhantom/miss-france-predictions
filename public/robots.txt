@@ -1,0 +1,46 @@
+# www.robotstxt.org/
+# Règles pour tous les robots d'indexation
+
+User-agent: *
+
+# Autoriser l'accès aux pages publiques
+Allow: /
+Allow: /login
+Allow: /signup
+Allow: /mentions-legales
+Allow: /conditions-utilisation
+Allow: /confidentialite
+Allow: /contact
+
+# Bloquer l'accès aux pages privées et sections authentifiées
+Disallow: /dashboard
+Disallow: /predictions
+Disallow: /onboarding
+Disallow: /group/
+Disallow: /quiz-miss
+Disallow: /admin/
+Disallow: /profile
+
+# Bloquer les fichiers et dossiers système/configuration
+Disallow: /*.json$
+Disallow: /*.js$
+Disallow: /*.css$
+Disallow: /static/
+
+# Temps d'attente entre les requêtes (en secondes)
+Crawl-delay: 10
+
+# Sitemap
+Sitemap: https://miss-france-predictions.web.app/sitemap.xml
+
+# Instructions spécifiques pour Googlebot
+User-agent: Googlebot
+Allow: /*.js$
+Allow: /*.css$
+Allow: /static/
+
+# Instructions spécifiques pour Bingbot
+User-agent: Bingbot
+Allow: /*.js$
+Allow: /*.css$
+Allow: /static/

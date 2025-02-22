@@ -36,11 +36,11 @@ const Header = () => {
           <Link to="/" className="flex items-center space-x-2">
             <img
               src={isDark ? "/logo_misspronos_white.svg" : "/logo_misspronos.svg"}
-              alt="Miss'Pronos Logo"
+              alt="Miss'Prono Logo"
               className="h-10 w-auto"
             />
             <span className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
-              Miss'Pronos
+              Miss'Prono
             </span>
           </Link>
 

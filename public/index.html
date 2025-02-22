@@ -1,20 +1,47 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Pronostiquez l'élection Miss France avec vos amis"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>Miss'Pronos</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-  </body>
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" href="/logo192.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Pronostiquez l'élection Miss France avec vos amis" />
+
+  <!-- Meta tags généraux -->
+  <meta name="author" content="Miss'Prono" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph / Facebook par défaut -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Miss'Prono" />
+  <meta property="og:image" content="/og-image.jpg" />
+
+  <!-- Twitter par défaut -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="/twitter-image.jpg" />
+
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=%REACT_APP_GA_ID%"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '%REACT_APP_GA_ID%');
+  </script>
+
+  <!-- Vérification Google Search Console -->
+  <meta name="google-site-verification" content="%REACT_APP_GOOGLE_SITE_VERIFICATION%" />
+  <!-- Sitemap -->
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+  <title>Miss'Prono - Pronostics Miss France</title>
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+</body>
+
 </html>
