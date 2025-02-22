@@ -22,6 +22,7 @@ import { AnimatePresence } from 'framer-motion';
 import QuizMiss from './pages/dashboard/QuizMiss';
 import AdminResultsPage from './pages/admin/AdminResultsPage';
 import AdminScoresPage from './pages/admin/AdminScoresPage';
+import AuthActionPage from './pages/auth/AuthActionPage';
 
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
               <SignUpPage />
             </PageTransition>
           } />
+          <Route path="/__/auth/action" element={<AuthActionPage />} />
           <Route path="/dashboard" element={
             <PrivateRoute>
               <PageTransition>
