@@ -80,6 +80,13 @@ const Header = () => {
                           >
                             Calcul des scores
                           </Link>
+                          <Link
+                            to="/admin/contacts"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300"
+                            onClick={() => setAdminMenuOpen(false)}
+                          >
+                            Messages contact
+                          </Link>
                         </div>
                       </div>
                     )}
@@ -151,6 +158,13 @@ const Header = () => {
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Calcul des scores
+                    </Link>
+                    <Link
+                      to="/admin/contacts"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Messages contact
                     </Link>
                   </>
                 )}

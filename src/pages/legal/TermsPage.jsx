@@ -60,8 +60,14 @@ const TermsPage = () => {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Contact</h2>
               <p className="text-gray-600 dark:text-gray-300">
-                Pour toute question ou réclamation concernant ces conditions, veuillez nous contacter à : <br/>
-                Email : kuroro.lucifer.phantom@gmail.com <br/>
+                Pour toute question ou réclamation concernant ces conditions, veuillez nous contacter à : &nbsp;
+                <a href="/contact" class="inline-flex items-center gap-2 text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                    <path d="m22 4-10 8L2 4"></path>
+                  </svg>
+                  <span>Nous contacter</span>
+                </a>
               </p>
             </section>
           </div>

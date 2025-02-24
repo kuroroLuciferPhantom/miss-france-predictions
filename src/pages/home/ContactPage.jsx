@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../../config/firebase";
+import toast from "react-hot-toast";
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -8,11 +11,15 @@ const ContactPage = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Gestion des changements de champs
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Efface l'erreur du champ modifié
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: undefined });
+    }
   };
 
   // Validation du formulaire
@@ -28,78 +35,117 @@ const ContactPage = () => {
   };
 
   // Soumission du formulaire
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log("Données envoyées :", formData);
-      setSuccess(true);
-      setFormData({ name: "", email: "", message: "" }); // Réinitialisation du formulaire
-      setTimeout(() => setSuccess(false), 5000); // Cache le message après 5 sec
+    if (!validateForm() || isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    try {
+      await addDoc(collection(db, "contacts"), {
+        ...formData,
+        createdAt: serverTimestamp(),
+        read: false
+      });
+
+      // Reset du formulaire
+      setFormData({ name: "", email: "", message: "" });
+      toast.success("Message envoyé avec succès !");
+
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du message:", error);
+      toast.error("Une erreur est survenue lors de l'envoi du message.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md mt-8">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">Contact</h1>
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text mb-6 text-center">
+        Contact
+      </h1>
       <p className="text-gray-600 dark:text-gray-300 mb-6 text-center">
         Une question ou une demande ? Contactez-nous via ce formulaire.
       </p>
-  
-      {success && (
-        <div className="mb-4 p-3 bg-green-100 dark:bg-green-900/20 border border-green-400 dark:border-green-800 text-green-700 dark:text-green-400 rounded">
-          ✅ Votre message a bien été envoyé !
-        </div>
-      )}
-  
+
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Champ Nom */}
         <div>
-          <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Nom</label>
+          <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">
+            Nom
+          </label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+                     dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 
+                     focus:ring-2 focus:ring-pink-500 dark:focus:ring-pink-400 
+                     focus:border-transparent"
             placeholder="Votre nom"
+            disabled={isSubmitting}
           />
-          {errors.name && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.name}</p>}
+          {errors.name && (
+            <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.name}</p>
+          )}
         </div>
-  
+
         {/* Champ Email */}
         <div>
-          <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Email</label>
+          <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">
+            Email
+          </label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+                     dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 
+                     focus:ring-2 focus:ring-pink-500 dark:focus:ring-pink-400 
+                     focus:border-transparent"
             placeholder="Votre email"
+            disabled={isSubmitting}
           />
-          {errors.email && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.email}</p>}
+          {errors.email && (
+            <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.email}</p>
+          )}
         </div>
-  
+
         {/* Champ Message */}
         <div>
-          <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Message</label>
+          <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">
+            Message
+          </label>
           <textarea
             name="message"
             value={formData.message}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+                     dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 
+                     focus:ring-2 focus:ring-pink-500 dark:focus:ring-pink-400 
+                     focus:border-transparent"
             rows="4"
             placeholder="Votre message..."
-          ></textarea>
-          {errors.message && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.message}</p>}
+            disabled={isSubmitting}
+          />
+          {errors.message && (
+            <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.message}</p>
+          )}
         </div>
-  
+
         {/* Bouton Envoyer */}
         <button
           type="submit"
-          className="w-full bg-blue-600 dark:bg-blue-700 text-white font-semibold py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition"
+          disabled={isSubmitting}
+          className="w-full bg-gradient-to-r from-pink-500 to-purple-500 
+                   hover:from-pink-600 hover:to-purple-600 text-white font-semibold 
+                   py-2 rounded-lg transition-all duration-200 disabled:opacity-50 
+                   disabled:cursor-not-allowed"
         >
-          Envoyer
+          {isSubmitting ? "Envoi en cours..." : "Envoyer"}
         </button>
       </form>
     </div>

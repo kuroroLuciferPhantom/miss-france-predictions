@@ -86,9 +86,15 @@ const PolitiqueConfidentialitePage = () => {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 dark:text-white">Contact</h2>
               <p className="text-gray-600 dark:text-gray-300">
-                Pour toute question ou demande concernant vos données personnelles, vous pouvez nous contacter à :
+                Pour toute question ou demande concernant vos données personnelles, vous pouvez nous contacter à : &nbsp;
+                <a href="/contact" class="inline-flex items-center gap-2 text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                      <path d="m22 4-10 8L2 4"></path>
+                    </svg>
+                    <span>Nous contacter</span>
+                  </a>
               </p>
-              <p className="text-gray-600 font-semibold dark:text-gray-300">📧 kuroro.lucifer.phantom@gmail.com</p>
             </section>
 
             <section>
@@ -97,10 +103,8 @@ const PolitiqueConfidentialitePage = () => {
                 Cette politique de confidentialité peut être modifiée à tout moment. Les utilisateurs seront informés des changements importants.
               </p>
             </section>
-
           </div>
         </div>
-
 
         <div className="mt-8 text-center">
           <Link 

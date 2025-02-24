@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { sendEmailVerification } from "firebase/auth";
+import toast from 'react-hot-toast';
+
 
 const GoogleButton = ({ onClick }) => (
   <button
@@ -46,17 +49,35 @@ const SignUpPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      setIsLoading(true);
-      try {
-        await signup(formData.email, formData.password, formData.username);
-        navigate('/onboarding');
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
+    if (!validateForm()) return;
+  
+    setIsLoading(true);
+    try {
+      const userCredential = await signup(formData.email, formData.password, formData.username);
+      if (!userCredential || !userCredential.user) {
+        throw new Error("User credential or user is undefined");
       }
+  
+      await sendVerificationEmail(userCredential.user);
+      toast.success("Un email de vérification vous a été envoyé. Veuillez vérifier votre boîte de réception.");
+      navigate('/check-email');
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setIsLoading(false);
     }
+  };
+  
+  const sendVerificationEmail = async (user) => {
+    await sendEmailVerification(user, {
+      url: window.location.origin + '/login',
+      handleCodeInApp: true,
+    });
+  };
+  
+  const handleError = (err) => {
+    console.error("Error:", err);
+    setError(err.message);
   };
 
   const handleGoogleSignUp = async () => {

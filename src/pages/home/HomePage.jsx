@@ -1,11 +1,13 @@
+/* eslint-disable react/no-deprecated */
 import { useState, useEffect, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../config/firebase';
+// @ts-ignore
 import { Helmet } from 'react-helmet';
-import { useAnalytics } from '../../hooks/useAnalytics';
+import StarBackground from '../../components/ui/StarBackground';
 
 const scrollVariants = {
   hidden: {
@@ -49,19 +51,32 @@ const Countdown = () => {
     return () => clearInterval(timer);
   }, []);
 
-  return (
-    <div role="timer" className="bg-pink-50 dark:bg-pink-900/20 py-3 px-6 rounded-lg flex items-center justify-center space-x-4">
-      <span className="text-pink-600 dark:text-pink-400 font-medium">Élection Miss France 2026 dans :</span>
-      <div className="flex space-x-2 text-pink-600 dark:text-pink-400 font-bold">
-        <span>{timeLeft.days} jours</span>
-        <span>et</span>
-        <span>{timeLeft.hours} heures</span>
-        <span>et</span>
-        <span>{timeLeft.minutes} minutes</span>
-        <span>et</span>
-        <span>{timeLeft.seconds} secondes</span>
-      </div>
+  const TimeUnit = ({ value, label }) => (
+    <div className="flex flex-col items-center min-w-[80px] bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm">
+      <span className="text-2xl font-bold text-pink-600 dark:text-pink-400">
+        {value}
+      </span>
+      <span className="text-sm text-pink-500 dark:text-pink-300">
+        {label}
+      </span>
     </div>
+  );
+
+  return (
+    <StarBackground>
+      <div role="timer" className="py-4 px-6">
+        <h3 className="text-pink-600 dark:text-pink-400 font-medium text-center mb-3">
+          Élection Miss France 2026 dans :
+        </h3>
+        
+        <div className="flex flex-wrap justify-center gap-4">
+          <TimeUnit value={timeLeft.days} label="jours" />
+          <TimeUnit value={timeLeft.hours} label="heures" />
+          <TimeUnit value={timeLeft.minutes} label="minutes" />
+          <TimeUnit value={timeLeft.seconds} label="secondes" />
+        </div>
+      </div>
+    </StarBackground>
   );
 };
 
@@ -258,13 +273,13 @@ const Statistics = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           <div className="space-y-2">
             <div className="text-4xl font-bold">
-              {isAuthenticated ? stats.participants : "1,234"}
+              {isAuthenticated ? stats.participants : "27"}
             </div>
             <div className="text-pink-100">Participants</div>
           </div>
           <div className="space-y-2">
             <div className="text-4xl font-bold">
-              {isAuthenticated ? stats.groupsCount : "256"}
+              {isAuthenticated ? stats.groupsCount : "12"}
             </div>
             <div className="text-pink-100">Groupes actifs</div>
           </div>
@@ -320,7 +335,6 @@ const CallToAction = ({ onCreateGroup, onJoinGroup }) => (
 );
 
 const HomePage = () => {
-  const { trackEvent } = useAnalytics();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthContext();
 
@@ -338,12 +352,10 @@ const HomePage = () => {
   };
 
   const handleCreateGroup = () => { 
-    trackEvent('create_group_click');
     handleSecureNavigation('/group/create'); 
   }
   const handleJoinGroup = () => handleSecureNavigation('/group/join');
   const handleStartAdventure = () => {
-    trackEvent('start_adventure_click');
     if (isAuthenticated) {
       if (!user?.hasCompletedOnboarding) {
         navigate('/onboarding');

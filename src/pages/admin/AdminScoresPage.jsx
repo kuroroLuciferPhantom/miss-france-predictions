@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { showToast } from '../../components/ui/Toast';
+import { useScoreModal } from '../../contexts/ScoreModalContext';
 
 const AdminScoresPage = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const AdminScoresPage = () => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [lastCalculation, setLastCalculation] = useState(null);
   const [calculatingBadges, setCalculatingBadges] = useState(false);
+  const { showScoreModal } = useScoreModal();
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -69,30 +71,33 @@ const AdminScoresPage = () => {
   const calculateScores = async (type = 'top15') => {
     setCalculating(true);
     setUsersProcessed(0);
-
+  
     try {
       const predictionsSnapshot = await getDocs(collection(db, 'predictions'));
       const predictions = predictionsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-
+  
       const finalBatch = writeBatch(db);
       const batchSize = 500;
-
+  
+      // Pour stocker tous les scores pour le classement
+      let allScores = [];
+  
       for (let i = 0; i < predictions.length; i += batchSize) {
         const batch = writeBatch(db);
         const currentBatch = predictions.slice(i, i + batchSize);
-
+  
         for (const prediction of currentBatch) {
           const scores = calculateUserScores(prediction, eventStatus, type);
           const userScoreRef = doc(db, 'userScores', prediction.userId, 'years', '2026');
-
+  
           // Pour le top5, on met à jour les scores existants
           if (type === 'top5') {
             const existingScores = await getDoc(userScoreRef);
             const currentScores = existingScores.exists() ? existingScores.data() : {};
-
+  
             batch.set(userScoreRef, {
               ...currentScores,
               ...scores,
@@ -105,20 +110,79 @@ const AdminScoresPage = () => {
               calculatedAt: new Date().toISOString()
             });
           }
-
+  
+          // Ajouter le score au tableau pour le classement
+          allScores.push({
+            userId: prediction.userId,
+            score: scores.totalScore
+          });
+  
+          // Vérifier si l'utilisateur doit voir la modal
+          const revealRef = doc(db, 'scoreReveals', `${prediction.userId}_2026`);
+          const revealDoc = await getDoc(revealRef);
+          const revealData = revealDoc.exists() ? revealDoc.data() : {};
+  
+          if (type === 'top15' && !revealData.top15Shown) {
+            batch.set(revealRef, {
+              userId: prediction.userId,
+              year: 2026,
+              top15Shown: true
+            }, { merge: true });
+          } else if (type === 'top5' && !revealData.top5Shown) {
+            batch.set(revealRef, {
+              userId: prediction.userId,
+              year: 2026,
+              top5Shown: true
+            }, { merge: true });
+          }
+  
           setUsersProcessed(prev => prev + 1);
         }
-
+  
         await batch.commit();
       }
-
+  
+      // Calculer les classements
+      allScores = allScores.sort((a, b) => b.score - a.score);
+      
+      // Envoyer les notifications aux utilisateurs connectés
+      for (const prediction of predictions) {
+        const revealRef = doc(db, 'scoreReveals', `${prediction.userId}_2026`);
+        const revealDoc = await getDoc(revealRef);
+        const revealData = revealDoc.exists() ? revealDoc.data() : {};
+  
+        const shouldShowModal = (type === 'top15' && !revealData.top15Shown) || 
+                              (type === 'top5' && !revealData.top5Shown);
+  
+        if (shouldShowModal) {
+          const userScore = allScores.find(s => s.userId === prediction.userId);
+          const userRank = allScores.findIndex(s => s.userId === prediction.userId) + 1;
+  
+          // Fire and forget - pas besoin d'attendre
+          setDoc(doc(db, 'scoreReveals', `${prediction.userId}_2026`), {
+            userId: prediction.userId,
+            year: 2026,
+            [`${type}Shown`]: true
+          }, { merge: true });
+  
+          if (prediction.userId === user.uid) {
+            showScoreModal({
+              score: userScore.score,
+              rank: userRank,
+              totalParticipants: allScores.length,
+              revealType: type
+            });
+          }
+        }
+      }
+  
       finalBatch.set(doc(db, 'calculationStatus', 'lastCalculation'), {
         timestamp: new Date().toISOString(),
         [type]: true
       }, { merge: true });
-
+  
       await finalBatch.commit();
-
+  
       showToast.success(`Scores ${type} calculés avec succès ! ${usersProcessed} utilisateurs traités.`);
     } catch (error) {
       console.error('Erreur lors du calcul des scores:', error);

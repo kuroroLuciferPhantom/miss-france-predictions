@@ -1,6 +1,6 @@
 //src/hooks/useAuth.js
 import { useState, useEffect } from 'react';
-import { 
+import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
@@ -17,19 +17,31 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("🔄 Initialisation de l'écouteur d'authentification");
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log("🔄 Changement d'état d'authentification:", firebaseUser?.email);
       setLoading(true);
-
+  
       try {
         if (firebaseUser) {
+          // Vérifier d'abord si l'email est vérifié
+          if (!firebaseUser.emailVerified) {
+            // Si l'email n'est pas vérifié, on stocke uniquement les infos de base
+            setUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              emailVerified: false
+            });
+            return;
+          }
+  
+          // Si l'email est vérifié, on récupère les données Firestore
           const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userDoc = await getDoc(userDocRef);
-      
+  
           setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email,
+            username: userDoc.username || firebaseUser.email.split('@')[0],
+            emailVerified: true,
             ...userDoc.exists() ? userDoc.data() : {}
           });
         } else {
@@ -37,41 +49,26 @@ export const useAuth = () => {
         }
       } catch (error) {
         console.error("❌ Erreur de synchronisation:", error);
-        setUser((prevUser) => prevUser || { uid: firebaseUser.uid, email: firebaseUser.email }); // 🔥 Garde au moins les infos Firebase
+        if (firebaseUser) {
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            emailVerified: firebaseUser.emailVerified
+          });
+        } else {
+          setUser(null);
+        }
       } finally {
         setLoading(false);
       }
     });
-
-    return () => {
-      console.log("🧹 Nettoyage de l'écouteur d'authentification");
-      unsubscribe();
-    };
+  
+    return () => unsubscribe();
   }, []);
-
+  
   const login = async (email, password) => {
     return showToast.promise(
-      (async () => {
-        const result = await signInWithEmailAndPassword(auth, email, password);
-        const userDocRef = doc(db, 'users', result.user.uid);
-        let userData;
-  
-        if (!(await getDoc(userDocRef)).exists()) {
-          await setDoc(userDocRef, {
-            email: result.user.email,
-            createdAt: new Date().toISOString()
-          });
-        }
-  
-        const userDoc = await getDoc(userDocRef);
-        userData = {
-          uid: result.user.uid,
-          email: result.user.email,
-          ...userDoc.exists() ? userDoc.data() : {}
-        };
-  
-        return userData;
-      })(),
+      signInWithEmailAndPassword(auth, email, password),
       {
         loading: 'Connexion en cours...',
         success: 'Connexion réussie !',
@@ -87,7 +84,7 @@ export const useAuth = () => {
         const { user: firebaseUser } = await signInWithPopup(auth, provider);
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         let userData;
-  
+
         if (!(await getDoc(userDocRef)).exists()) {
           await setDoc(userDocRef, {
             username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
@@ -95,7 +92,7 @@ export const useAuth = () => {
             createdAt: new Date().toISOString()
           });
         }
-  
+
         // 🔥 On refait un getDoc() pour être sûr d'avoir les dernières données
         const newUserDoc = await getDoc(userDocRef);
         userData = {
@@ -103,7 +100,7 @@ export const useAuth = () => {
           email: firebaseUser.email,
           ...newUserDoc.exists() ? newUserDoc.data() : {}
         };
-  
+
         return userData;
       })(),
       {
@@ -125,13 +122,12 @@ export const useAuth = () => {
     );
   };
 
-  // Ajout de la fonction signup
   const signup = async (email, password, username) => {
     return showToast.promise(
       (async () => {
         // Créer l'utilisateur dans Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        
+
         // Créer le document utilisateur dans Firestore
         const userDocRef = doc(db, 'users', userCredential.user.uid);
         const userData = {
@@ -139,13 +135,15 @@ export const useAuth = () => {
           email,
           createdAt: new Date().toISOString()
         };
-        
+
         await setDoc(userDocRef, userData);
-        
+
+        // Retourner l'objet userCredential attendu
         return {
-          uid: userCredential.user.uid,
-          email: userCredential.user.email,
-          ...userData
+          user: userCredential.user,
+          additionalUserInfo: {
+            ...userData
+          }
         };
       })(),
       {
@@ -155,6 +153,7 @@ export const useAuth = () => {
       }
     );
   };
+
 
   return {
     user,

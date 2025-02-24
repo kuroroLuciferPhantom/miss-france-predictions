@@ -1,13 +1,15 @@
-import React, {  useState, useEffect, useRef } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext';
 import { showToast } from '../components/ui/Toast';
+import { auth } from '../config/firebase';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuthContext();
   const [showLoading, setShowLoading] = useState(false);
-  const toastShown = useRef(false); // Ref pour éviter les multiples affichages
- 
+  const toastShown = useRef(false);
+  const navigate = useNavigate();
+
   useEffect(() => {
     let timer;
     if (loading) {
@@ -15,7 +17,29 @@ const PrivateRoute = ({ children }) => {
     }
     return () => clearTimeout(timer);
   }, [loading]);
- 
+
+  useEffect(() => {
+    const verifyEmail = async () => {
+      try {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          // Force le rechargement des infos utilisateur
+          await currentUser.reload();
+          if (!currentUser.emailVerified) {
+            showToast.error("📧 Veuillez vérifier votre email avant d'accéder à cette page");
+            navigate('/check-email');
+          }
+        }
+      } catch (error) {
+        console.error('Erreur de vérification:', error);
+      }
+    };
+
+    if (user && !loading) {
+      verifyEmail();
+    }
+  }, [user, loading, navigate]);
+
   if (loading) {
     if (!showLoading) return null;
     return (
@@ -24,16 +48,16 @@ const PrivateRoute = ({ children }) => {
       </div>
     );
   }
- 
+
   if (!user) {
     if (!toastShown.current) {
       showToast.error("🔒 Vous devez être connecté pour accéder à cette page.");
-      toastShown.current = true; // Marque le toast comme affiché
+      toastShown.current = true;
     }
     return <Navigate to="/login" replace />;
   }
- 
-  return children;
- };
 
- export default PrivateRoute;
+  return children;
+};
+
+export default PrivateRoute;
