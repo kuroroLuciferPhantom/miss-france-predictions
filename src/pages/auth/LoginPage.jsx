@@ -5,6 +5,8 @@ import { useAuth } from '../../hooks/useAuth';
 import LoadingScreen from '../../components/ui/LoadingScreen';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../config/firebase";
+import { toast } from 'react-hot-toast';
+import { useSeo } from '../../hooks/useSeo';
 
 
 const GoogleButton = ({ onClick, isLoading }) => (
@@ -66,16 +68,16 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
-      
+
       if (!userCredential.user.emailVerified) {
         setError("📧 Veuillez vérifier votre email avant de vous connecter");
         navigate('/check-email');
         return;
       }
-      
+
       const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
       sessionStorage.removeItem('redirectAfterLogin');
       navigate(redirectPath);
@@ -97,34 +99,50 @@ const LoginPage = () => {
       "auth/internal-error": "⚠️ Erreur interne. Réessayez plus tard.",
       "email-not-verified": "📧 Veuillez vérifier votre email avant de vous connecter."
     };
-  
+
     return messages[errorCode] || "⚠️ Une erreur est survenue. Veuillez réessayer.";
   };
 
   const handleGoogleSignIn = async () => {
+    console.log('Début de handleGoogleSignIn'); // Log pour vérifier le début de l'exécution
     try {
       setIsLoading(true);
-
+      console.log('Loading activé'); // Log pour vérifier que setIsLoading est appelé
+  
       const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
-      await loginWithGoogle();
-
+      console.log('Appel de loginWithGoogle'); // Log avant l'appel de loginWithGoogle
+  
+      // Appeler la fonction loginWithGoogle mais avec une gestion d'erreur explicite
+      await loginWithGoogle().catch(error => {
+        console.log('Erreur capturée dans loginWithGoogle'); // Log pour vérifier la capture de l'erreur
+        // Relancer l'erreur pour être traitée dans le bloc catch externe
+        throw error;
+      });
+  
+      console.log('Connexion réussie'); // Log pour vérifier la réussite de la connexion
+  
       if (sessionStorage.getItem('redirectAfterLogin')) {
         sessionStorage.removeItem('redirectAfterLogin');
       }
-
+  
       navigate(redirectPath);
     } catch (err) {
       console.error('❌ Erreur dans handleGoogleSignIn:', err);
-      // Si l'utilisateur a fermé la popup ou annulé
-      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
-        toast.info("Connexion Google annulée");
+  
+      // Gestion spécifique des erreurs courantes
+      if (err.code === 'auth/popup-closed-by-user') {
+        console.log('Popup fermée par l\'utilisateur');
+      } else if (err.code === 'auth/cancelled-popup-request') {
+        console.log('Requête popup annulée');
       } else {
-        toast.error('Erreur lors de la connexion avec Google');
+        console.log('Autre erreur de connexion');
       }
     } finally {
+      console.log('Exécution du bloc finally'); // Log pour vérifier l'exécution du bloc finally
       setIsLoading(false); // S'assurer que le loading est toujours désactivé
     }
   };
+  
 
   const handleChange = (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -145,6 +163,11 @@ const LoginPage = () => {
       toast.error("Erreur lors de l'envoi de l'email de réinitialisation");
     }
   };
+
+  useSeo({
+    title: 'Miss\'Prono - Connexion',
+    description: 'Connectez-vous à votre compte Miss\'Prono pour accéder à vos groupes et pronostics.',
+  });
 
   return (
     <>

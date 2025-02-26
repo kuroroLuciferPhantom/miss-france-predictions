@@ -1,13 +1,11 @@
-/* eslint-disable react/no-deprecated */
 import { useState, useEffect, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../config/firebase';
-// @ts-ignore
-import { Helmet } from 'react-helmet';
 import StarBackground from '../../components/ui/StarBackground';
+import { useSeo } from '../../hooks/useSeo';
 
 const scrollVariants = {
   hidden: {
@@ -68,7 +66,7 @@ const Countdown = () => {
         <h3 className="text-pink-600 dark:text-pink-400 font-medium text-center mb-3">
           Élection Miss France 2026 dans :
         </h3>
-        
+
         <div className="flex flex-wrap justify-center gap-4">
           <TimeUnit value={timeLeft.days} label="jours" />
           <TimeUnit value={timeLeft.hours} label="heures" />
@@ -351,8 +349,8 @@ const HomePage = () => {
     }
   };
 
-  const handleCreateGroup = () => { 
-    handleSecureNavigation('/group/create'); 
+  const handleCreateGroup = () => {
+    handleSecureNavigation('/group/create');
   }
   const handleJoinGroup = () => handleSecureNavigation('/group/join');
   const handleStartAdventure = () => {
@@ -367,36 +365,13 @@ const HomePage = () => {
     }
   };
 
+  useSeo({
+    title: 'Miss\'Prono - Prédisez la gagnante !',
+    description: 'Créez votre groupe de pronostics Miss France 2026, invitez vos amis et prédisez qui sera la prochaine Miss France. Quiz et classements en direct!',
+  });
+
   return (
     <>
-      <Helmet>
-        <title>Pronostics Miss France 2026 - Prédisez la gagnante !</title>
-        <meta name="description" content="Créez votre groupe de pronostics Miss France 2026, invitez vos amis et prédisez qui sera la prochaine Miss France. Quiz et classements en direct!" />
-
-        {/* Open Graph / Facebook - spécifique à la page */}
-        <meta property="og:title" content="Pronostics Miss France 2026 - Miss'Prono" />
-        <meta property="og:description" content="Créez votre groupe et prédisez qui sera Miss France 2026!" />
-
-        {/* Schema.org pour le rich snippet */}
-        <script type="application/ld+json">
-          {`
-            {
-              "@context": "http://schema.org",
-              "@type": "WebApplication",
-              "name": "Miss'Prono - Pronostics Miss France 2026",
-              "description": "Application de pronostics pour l'élection Miss France 2026",
-              "applicationCategory": "GameApplication",
-              "operatingSystem": "Web",
-              "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "EUR"
-              }
-            }
-          `}
-        </script>
-      </Helmet>
-
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
           <div className="text-center mb-12">

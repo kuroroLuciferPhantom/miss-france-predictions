@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { sendEmailVerification } from "firebase/auth";
 import toast from 'react-hot-toast';
-
+import { useSeo } from '../../hooks/useSeo';
 
 const GoogleButton = ({ onClick }) => (
   <button
@@ -50,14 +50,14 @@ const SignUpPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-  
+
     setIsLoading(true);
     try {
       const userCredential = await signup(formData.email, formData.password, formData.username);
       if (!userCredential || !userCredential.user) {
         throw new Error("User credential or user is undefined");
       }
-  
+
       await sendVerificationEmail(userCredential.user);
       toast.success("Un email de vérification vous a été envoyé. Veuillez vérifier votre boîte de réception.");
       navigate('/check-email');
@@ -67,14 +67,14 @@ const SignUpPage = () => {
       setIsLoading(false);
     }
   };
-  
+
   const sendVerificationEmail = async (user) => {
     await sendEmailVerification(user, {
       url: window.location.origin + '/login',
       handleCodeInApp: true,
     });
   };
-  
+
   const handleError = (err) => {
     console.error("Error:", err);
     setError(err.message);
@@ -115,6 +115,11 @@ const SignUpPage = () => {
     });
     setError(''); // Clear error when user types
   };
+
+  useSeo({
+    title: 'Miss\'Prono - Créer un compte',
+    description: 'Créez votre compte Miss\'Prono pour prédire la nouvelle Miss en compagnie de vos amis',
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col py-12 px-6 lg:px-8">

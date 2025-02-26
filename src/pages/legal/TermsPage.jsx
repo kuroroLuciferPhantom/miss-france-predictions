@@ -1,7 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useSeo } from '../../hooks/useSeo';
 
 const TermsPage = () => {
+  useSeo({
+    title: 'Miss\'Prono - Conditions d\'Utilisation',
+    description: 'Conditions d\'utilisation du site Miss\'Prono. Informations sur l\'utilisation du service.',
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -74,7 +80,7 @@ const TermsPage = () => {
         </div>
 
         <div className="mt-8 text-center">
-          <Link 
+          <Link
             to="/"
             className="text-pink-500 hover:text-pink-600 font-medium"
           >

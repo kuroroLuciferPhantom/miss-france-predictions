@@ -31,7 +31,7 @@ Disallow: /static/
 Crawl-delay: 10
 
 # Sitemap
-Sitemap: https://miss-france-predictions.web.app/sitemap.xml
+Sitemap: https://miss-prono.fr/sitemap.xml
 
 # Instructions spécifiques pour Googlebot
 User-agent: Googlebot

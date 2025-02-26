@@ -1,7 +1,14 @@
 import React from 'react';
 import { Crown } from 'lucide-react';
+import { useSeo } from  '../hooks/useSeo';
 
 const NotFoundPage = () => {
+  useSeo({
+    title: 'Page non trouvée | Miss\'Prono',
+    description: 'La page que vous recherchez n\'existe pas ou a été déplacée.',
+    noindex: true
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
       <div className="text-center px-6 py-16">

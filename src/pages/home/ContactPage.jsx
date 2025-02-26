@@ -2,6 +2,7 @@ import { useState } from "react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import toast from "react-hot-toast";
+import { useSeo } from "../../hooks/useSeo";
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -29,7 +30,7 @@ const ContactPage = () => {
     if (!formData.email.trim()) newErrors.email = "L'email est requis.";
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email invalide.";
     if (!formData.message.trim()) newErrors.message = "Le message est requis.";
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -59,6 +60,11 @@ const ContactPage = () => {
       setIsSubmitting(false);
     }
   };
+
+  useSeo({
+    title: 'Miss\'Prono - Nous contacter !',
+    description: 'Contactez-nous pour toute question ou demande. Nous vous répondrons dans les plus brefs délais.',
+  });
 
   return (
     <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md mt-8">

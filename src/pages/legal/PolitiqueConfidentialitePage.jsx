@@ -1,7 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useSeo } from '../../hooks/useSeo';
 
 const PolitiqueConfidentialitePage = () => {
+  useSeo({
+    title: 'Miss\'Prono - Politique de confidentialité',
+    description: 'Politique de confidentialité du site Miss\'Prono. Informations sur la collecte et l\'utilisation des données personnelles.',
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -9,7 +15,7 @@ const PolitiqueConfidentialitePage = () => {
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
           <div className="p-6 space-y-6">
-            
+
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 dark:text-white">Dernière mise à jour</h2>
               <p className="text-gray-600 dark:text-gray-300">22/02/2025</p>
@@ -88,12 +94,12 @@ const PolitiqueConfidentialitePage = () => {
               <p className="text-gray-600 dark:text-gray-300">
                 Pour toute question ou demande concernant vos données personnelles, vous pouvez nous contacter à : &nbsp;
                 <a href="/contact" class="inline-flex items-center gap-2 text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                      <path d="m22 4-10 8L2 4"></path>
-                    </svg>
-                    <span>Nous contacter</span>
-                  </a>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                    <path d="m22 4-10 8L2 4"></path>
+                  </svg>
+                  <span>Nous contacter</span>
+                </a>
               </p>
             </section>
 
@@ -107,7 +113,7 @@ const PolitiqueConfidentialitePage = () => {
         </div>
 
         <div className="mt-8 text-center">
-          <Link 
+          <Link
             to="/"
             className="text-pink-500 hover:text-pink-600 font-medium"
           >

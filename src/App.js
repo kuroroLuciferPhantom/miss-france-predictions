@@ -24,9 +24,9 @@ import QuizMiss from './pages/dashboard/QuizMiss';
 import AdminResultsPage from './pages/admin/AdminResultsPage';
 import AdminScoresPage from './pages/admin/AdminScoresPage';
 import AdminContactsPage from './pages/admin/AdminContactsPage';
-import AuthActionPage from './pages/auth/AuthActionPage';
 import NotFoundPage from './pages/NotFoundPage';
 import CheckEmailPage from './pages/auth/CheckEmailPage';
+import CanonicalLink from './components/seo/CanonicalLink';
 
 function App() {
   const location = useLocation();
@@ -35,6 +35,7 @@ function App() {
 
     <AuthProvider>
       <Layout>
+        <CanonicalLink path={location.pathname} />
         <ScoreModalProvider>
           <AnimatePresence mode="wait">
             <Routes future={{

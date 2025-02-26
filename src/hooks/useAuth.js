@@ -77,7 +77,7 @@ export const useAuth = () => {
     );
   };
 
-  const loginWithGoogle = async () => {
+  /*const loginWithGoogle = async () => {
     return showToast.promise(
       (async () => {
         const provider = new GoogleAuthProvider();
@@ -109,7 +109,56 @@ export const useAuth = () => {
         error: 'Échec de la connexion avec Google'
       }
     );
-  };
+  };*/
+
+  // Dans src/hooks/useAuth.js
+const loginWithGoogle = async () => {
+  // Créer un gestionnaire qui ne dépend pas de toast.promise
+  const provider = new GoogleAuthProvider();
+  
+  try {
+    // Utiliser directement signInWithPopup
+    const { user: firebaseUser } = await signInWithPopup(auth, provider);
+    const userDocRef = doc(db, 'users', firebaseUser.uid);
+    
+    let userData;
+    
+    // Vérifier si l'utilisateur existe
+    if (!(await getDoc(userDocRef)).exists()) {
+      await setDoc(userDocRef, {
+        username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+        email: firebaseUser.email,
+        createdAt: new Date().toISOString()
+      });
+    }
+    
+    // Récupérer les données utilisateur
+    const newUserDoc = await getDoc(userDocRef);
+    userData = {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email,
+      ...newUserDoc.exists() ? newUserDoc.data() : {}
+    };
+    
+    // Afficher un toast de succès
+    showToast.success('Connexion réussie !');
+    
+    return userData;
+  } catch (error) {
+    // Gestion explicite des erreurs
+    console.error("Erreur loginWithGoogle:", error);
+    
+    // Messages personnalisés selon le type d'erreur
+    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+      showToast.error('Connexion Google annulée');
+    } else {
+      showToast.error('Échec de la connexion avec Google');
+    }
+    
+    // Relancer l'erreur pour que le composant appelant puisse la gérer
+    throw error;
+  }
+};
 
   const logout = async () => {
     await showToast.promise(
