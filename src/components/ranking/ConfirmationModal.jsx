@@ -3,14 +3,14 @@ import React, { useEffect, useRef } from 'react';
 const ConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
   const modalRef = useRef(null);
   
-  // Effet pour faire défiler et se concentrer sur la modale quand elle s'ouvre
+  // Effet pour gérer le comportement de la modale
   useEffect(() => {
     if (isOpen && modalRef.current) {
-      // Défiler vers le haut de la page
-      window.scrollTo(0, 0);
-      
-      // Désactiver le défilement du corps
-      document.body.style.overflow = 'hidden';
+      // Force le positionnement en haut de l'écran
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
       
       // Gestionnaire pour fermer en cliquant en dehors
       const handleClickOutside = (event) => {
@@ -24,7 +24,6 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
       
       // Nettoyage
       return () => {
-        document.body.style.overflow = 'auto';
         document.removeEventListener('mousedown', handleClickOutside);
       };
     }
@@ -32,11 +31,16 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
   
   if (!isOpen) return null;
 
+  // Style en ligne pour positionner la modale en haut avec marge fixe
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 overflow-y-auto" 
+      style={{ paddingTop: '4rem' }}
+    >
       <div 
         ref={modalRef}
-        className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4 my-20"
+        className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-auto"
+        style={{ marginTop: '0', marginBottom: '4rem' }}
       >
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
           Confirmer la validation

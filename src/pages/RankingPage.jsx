@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import MissCard from '../components/ranking/MissCard';
@@ -39,30 +39,56 @@ const RankingPage = () => {
     const componentRef = useRef(null);
     const pageUrl = window.location.href;
     const shareText = "Je viens de faire mes pronostics pour Miss France 2026 ! Viens faire les tiens sur Miss'Prono 👑";
-  
+    const shareModalRef = useRef(null);
+
+    useEffect(() => {
+      if (showShareComponent && shareModalRef.current) {
+        // Force le positionnement en haut de l'écran
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+        
+        // Gestionnaire pour fermer en cliquant en dehors
+        const handleClickOutside = (event) => {
+          if (shareModalRef.current && !shareModalRef.current.contains(event.target)) {
+            setShowShareComponent(false);
+          }
+        };
+        
+        // Ajouter l'écouteur d'événement
+        document.addEventListener('mousedown', handleClickOutside);
+        
+        // Nettoyage
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+        };
+      }
+    }, [showShareComponent]);
+
     // Effet pour s'assurer que le document est scrollable
     useEffect(() => {
       document.body.style.overflow = 'auto';
-      
+
       // Gestionnaire pour fermer en cliquant en dehors
       const handleClickOutside = (event) => {
         if (componentRef.current && !componentRef.current.contains(event.target)) {
           onClose();
         }
       };
-      
+
       // Ajouter l'écouteur d'événement avec un délai pour éviter la fermeture immédiate
       const timer = setTimeout(() => {
         document.addEventListener('mousedown', handleClickOutside);
       }, 100);
-      
+
       // Nettoyage
       return () => {
         clearTimeout(timer);
         document.removeEventListener('mousedown', handleClickOutside);
       };
     }, [onClose]);
-  
+
     const handleShare = async () => {
       if (navigator.share) {
         try {
@@ -78,21 +104,21 @@ const RankingPage = () => {
         }
       }
     };
-  
+
     const handleReturnToDashboard = () => {
       navigate('/dashboard');
     };
-  
+
     // URLs de partage pour les réseaux sociaux
     const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}&quote=${encodeURIComponent(shareText)}`;
     const twitterShareUrl = `https://x.com/intent/post?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pageUrl)}`;
-  
+
     return (
       <div ref={componentRef}>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Partagez vos pronostics !
         </h3>
-        
+
         {/* Bouton de partage natif (mobile) */}
         {navigator.share && (
           <button
@@ -102,7 +128,7 @@ const RankingPage = () => {
             <span>Partager</span>
           </button>
         )}
-  
+
         {/* Boutons réseaux sociaux */}
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Facebook */}
@@ -113,7 +139,7 @@ const RankingPage = () => {
           >
             <span>Facebook</span>
           </a>
-  
+
           {/* Twitter/X */}
           <a href={twitterShareUrl}
             target="_blank"
@@ -123,11 +149,11 @@ const RankingPage = () => {
             <span>Twitter</span>
           </a>
         </div>
-  
+
         <p className="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center">
           Invitez vos amis à faire leurs pronostics et comparez vos résultats !
         </p>
-  
+
         {/* Bouton Retour au Dashboard */}
         <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
           <button
@@ -730,15 +756,66 @@ const RankingPage = () => {
         />
 
         {showShareComponent && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center overflow-y-auto">
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 overflow-y-auto"
+            style={{ paddingTop: '4rem' }}
+          >
             <div
-              className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4 my-20"
-              onClick={(e) => e.stopPropagation()} // Empêche la propagation des clics
+              ref={shareModalRef} // Assurez-vous d'ajouter cette ref en haut du composant
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-auto"
+              style={{ marginTop: '0', marginBottom: '4rem' }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <SharePredictionsWithClose
-                onClose={() => setShowShareComponent(false)}
-                navigate={navigate}
-              />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Partagez vos pronostics !
+              </h3>
+
+              {/* Bouton de partage natif (mobile) */}
+              {navigator.share && (
+                <button
+                  onClick={handleShare}
+                  className="w-full mb-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2"
+                >
+                  <span>Partager</span>
+                </button>
+              )}
+
+              {/* Boutons réseaux sociaux */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                {/* Facebook */}
+                <a href={fbShareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2"
+                >
+                  <FacebookIcon size={20} />
+                  <span>Facebook</span>
+                </a>
+
+                {/* Twitter/X */}
+                <a href={twitterShareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-black hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2"
+                >
+                  <XIcon size={20} />
+                  <span>Twitter</span>
+                </a>
+              </div>
+
+              <p className="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center">
+                Invitez vos amis à faire leurs pronostics et comparez vos résultats !
+              </p>
+
+              {/* Bouton Retour au Dashboard */}
+              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={handleDashboard}
+                  className="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium rounded-lg flex items-center justify-center gap-2"
+                >
+                  Retour au Dashboard
+                </button>
+              </div>
             </div>
           </div>
         )}

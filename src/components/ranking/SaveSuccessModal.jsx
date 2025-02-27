@@ -6,11 +6,11 @@ const SaveSuccessModal = ({ isOpen, onClose, onShare, onDashboard }) => {
   // Effet pour gérer le comportement de la modale
   useEffect(() => {
     if (isOpen && modalRef.current) {
-      // Défiler vers le haut de la page
-      window.scrollTo(0, 0);
-      
-      // Permettre le défilement mais avec la modale visible
-      document.body.style.overflow = 'auto';
+      // Force le positionnement en haut de l'écran
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
       
       // Gestionnaire pour fermer en cliquant en dehors
       const handleClickOutside = (event) => {
@@ -32,10 +32,14 @@ const SaveSuccessModal = ({ isOpen, onClose, onShare, onDashboard }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 overflow-y-auto" 
+      style={{ paddingTop: '4rem' }}
+    >
       <div 
         ref={modalRef}
-        className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4 my-20"
+        className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-auto"
+        style={{ marginTop: '0', marginBottom: '4rem' }}
       >
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
           Pronostics sauvegardés !
@@ -53,7 +57,7 @@ const SaveSuccessModal = ({ isOpen, onClose, onShare, onDashboard }) => {
             onClick={onDashboard}
             className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
-            Retour au Dashboard
+            Retour au tableau de bord
           </button>
         </div>
       </div>
