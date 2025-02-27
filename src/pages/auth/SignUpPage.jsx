@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { sendEmailVerification } from "firebase/auth";
 import toast from 'react-hot-toast';
@@ -226,12 +226,12 @@ const SignUpPage = () => {
             </div>
 
             <div className="mt-6">
-              <a
-                href="/login"
+              <Link
+                to="/login"
                 className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
               >
                 Se connecter
-              </a>
+              </Link>
             </div>
           </div>
         </div>

@@ -35,6 +35,112 @@ const RankingPage = () => {
   const [eventStarted, setEventStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const SharePredictionsWithClose = ({ onClose, navigate }) => {
+    const componentRef = useRef(null);
+    const pageUrl = window.location.href;
+    const shareText = "Je viens de faire mes pronostics pour Miss France 2026 ! Viens faire les tiens sur Miss'Prono 👑";
+  
+    // Effet pour s'assurer que le document est scrollable
+    useEffect(() => {
+      document.body.style.overflow = 'auto';
+      
+      // Gestionnaire pour fermer en cliquant en dehors
+      const handleClickOutside = (event) => {
+        if (componentRef.current && !componentRef.current.contains(event.target)) {
+          onClose();
+        }
+      };
+      
+      // Ajouter l'écouteur d'événement avec un délai pour éviter la fermeture immédiate
+      const timer = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+      }, 100);
+      
+      // Nettoyage
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [onClose]);
+  
+    const handleShare = async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "Miss'Prono - Mes pronostics",
+            text: shareText,
+            url: pageUrl,
+          });
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            console.error('Erreur lors du partage:', error);
+          }
+        }
+      }
+    };
+  
+    const handleReturnToDashboard = () => {
+      navigate('/dashboard');
+    };
+  
+    // URLs de partage pour les réseaux sociaux
+    const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}&quote=${encodeURIComponent(shareText)}`;
+    const twitterShareUrl = `https://x.com/intent/post?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pageUrl)}`;
+  
+    return (
+      <div ref={componentRef}>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Partagez vos pronostics !
+        </h3>
+        
+        {/* Bouton de partage natif (mobile) */}
+        {navigator.share && (
+          <button
+            onClick={handleShare}
+            className="w-full mb-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2"
+          >
+            <span>Partager</span>
+          </button>
+        )}
+  
+        {/* Boutons réseaux sociaux */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Facebook */}
+          <a href={fbShareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2"
+          >
+            <span>Facebook</span>
+          </a>
+  
+          {/* Twitter/X */}
+          <a href={twitterShareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bg-black hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2"
+          >
+            <span>Twitter</span>
+          </a>
+        </div>
+  
+        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center">
+          Invitez vos amis à faire leurs pronostics et comparez vos résultats !
+        </p>
+  
+        {/* Bouton Retour au Dashboard */}
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={handleReturnToDashboard}
+            className="w-full py-2 px-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium rounded-lg flex items-center justify-center gap-2"
+          >
+            Retour au Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   useEffect(() => {
     const checkEventStatus = async () => {
       try {
@@ -297,6 +403,44 @@ const RankingPage = () => {
     );
   }
 
+  const SelectionGuide = () => {
+    return (
+      <div className="mb-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <div className="flex items-start">
+          <div className="flex-shrink-0 mt-0.5">
+            <svg className="h-5 w-5 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
+              Comment faire vos pronostics
+            </h4>
+            <div className="text-sm text-blue-700 dark:text-blue-200 space-y-2">
+              <p>
+                <span className="font-medium">1.</span> Cliquez sur une Miss dans la liste pour l'ajouter à votre sélection. Elles seront ajoutées dans cet ordre :
+              </p>
+              <ol className="list-decimal pl-8 space-y-1">
+                <li>D'abord votre top 3 (Miss France et 1ère et 2ème dauphines)</li>
+                <li>Puis votre top 5 (3ème et 4ème dauphines)</li>
+                <li>Enfin, les 10 autres Miss qualifiées</li>
+              </ol>
+              <p>
+                <span className="font-medium">2.</span> Consultez et modifiez votre sélection en cliquant sur l'onglet "Vos sélections"
+              </p>
+              <p>
+                <span className="font-medium">3.</span> Pour retirer une Miss, cliquez sur la croix à côté de son nom dans l'onglet "Vos sélections"
+              </p>
+              <p>
+                <span className="font-medium">4.</span> Une fois vos 15 Miss sélectionnées, validez vos pronostics !
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -336,6 +480,8 @@ const RankingPage = () => {
             </div>
           </div>
         </div>
+
+        <SelectionGuide />
 
         {/* Progress Bar */}
         <div className="mb-8">
@@ -584,9 +730,15 @@ const RankingPage = () => {
         />
 
         {showShareComponent && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4">
-              <SharePredictions onClose={() => setShowShareComponent(false)} />
+          <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-50 flex items-center justify-center overflow-y-auto">
+            <div
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4 my-20"
+              onClick={(e) => e.stopPropagation()} // Empêche la propagation des clics
+            >
+              <SharePredictionsWithClose
+                onClose={() => setShowShareComponent(false)}
+                navigate={navigate}
+              />
             </div>
           </div>
         )}

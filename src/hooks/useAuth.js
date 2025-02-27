@@ -6,9 +6,22 @@ import {
   GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  updatePassword,
+  deleteUser
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { 
+  doc, 
+  setDoc, 
+  getDoc, 
+  updateDoc, 
+  deleteDoc, 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  arrayRemove 
+} from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import { showToast } from '../components/ui/Toast';
 
@@ -203,6 +216,88 @@ const loginWithGoogle = async () => {
     );
   };
 
+  const updateUsername = async (newUsername) => {
+    try {
+      // 1. Mettre à jour le document utilisateur principal
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        username: newUsername
+      });
+      
+      // 2. Mettre à jour le pseudo dans tous les groupes où l'utilisateur est membre
+      const groupsRef = collection(db, 'groups');
+      const groupsSnap = await getDocs(groupsRef);
+      
+      // Pour chaque groupe
+      for (const groupDoc of groupsSnap.docs) {
+        // Vérifier si l'utilisateur est membre de ce groupe
+        const memberRef = doc(db, 'groups', groupDoc.id, 'members', user.uid);
+        const memberSnap = await getDoc(memberRef);
+        
+        // Si l'utilisateur est membre, mettre à jour son pseudo
+        if (memberSnap.exists()) {
+          await updateDoc(memberRef, {
+            username: newUsername
+          });
+        }
+      }
+      
+      // 3. Mettre à jour l'état avec le nouveau pseudo
+      setUser(currentUser => ({
+        ...currentUser,
+        username: newUsername
+      }));
+      
+      return true;
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du nom d'utilisateur:", error);
+      throw error;
+    }
+  };
+  
+  const updateUserPassword = async (newPassword) => {
+    try {
+      await updatePassword(auth.currentUser, newPassword);
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du mot de passe:", error);
+      throw error;
+    }
+  };
+  
+  const deleteUserAccount = async () => {
+    try {
+      // D'abord supprimer les données de l'utilisateur
+      await deleteDoc(doc(db, 'users', user.uid));
+      
+      // Supprimer la participation aux groupes
+      const groupsQuery = query(collection(db, 'groups'), 
+                               where('members', 'array-contains', { userId: user.uid }));
+      const groupsSnapshot = await getDocs(groupsQuery);
+      
+      for (const groupDoc of groupsSnapshot.docs) {
+        await updateDoc(doc(db, 'groups', groupDoc.id), {
+          members: arrayRemove({ userId: user.uid })
+        });
+      }
+      
+      // Supprimer les prédictions
+      const predictionsQuery = query(collection(db, 'predictions'), 
+                                    where('userId', '==', user.uid));
+      const predictionsSnapshot = await getDocs(predictionsQuery);
+      
+      for (const predDoc of predictionsSnapshot.docs) {
+        await deleteDoc(doc(db, 'predictions', predDoc.id));
+      }
+      
+      // Enfin supprimer le compte Firebase Auth
+      await deleteUser(auth.currentUser);
+      
+    } catch (error) {
+      console.error("Erreur lors de la suppression du compte:", error);
+      throw error;
+    }
+  };
+
 
   return {
     user,
@@ -210,6 +305,9 @@ const loginWithGoogle = async () => {
     login,
     loginWithGoogle,
     logout,
-    signup
+    signup,
+    updateUsername,
+    updateUserPassword,
+    deleteUserAccount
   };
 };

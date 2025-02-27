@@ -316,7 +316,7 @@ const LoginPage = () => {
               <div className="mt-6">
                 <button
                   type="button"
-                  onClick={() => window.location.href = '/signup'}
+                  onClick={() => navigate('/signup')}
                   className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                 >
                   Créer un compte

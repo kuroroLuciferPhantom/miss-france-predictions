@@ -15,6 +15,7 @@ import { showToast } from '../../components/ui/Toast';
 import { useNavigate } from 'react-router-dom';
 import PointsSystem from '../../components/PointsSystem';
 import GroupInfoDesktop from '../../components/groups/GroupInfoDesktop';
+import GroupPredictionBanner from '../../components/groups/GroupPredictionBanner';
 import GroupHeader from '../../components/groups/GroupHeader';
 import {
   doc,
@@ -194,6 +195,7 @@ const GroupDetailPage = () => {
   const [newGroupName, setNewGroupName] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [predictionsOpen, setPredictionsOpen] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -235,6 +237,7 @@ const GroupDetailPage = () => {
           const eventDoc = await getDoc(doc(db, 'events', 'missfranceEventStatus'));
           if (eventDoc.exists()) {
             setEventStarted(eventDoc.data().started || false);
+            setPredictionsOpen(eventDoc.data().predictionsOpen !== false);
           }
 
           const completedPredictions = updatedMembers.filter(m => m.prediction?.isComplete).length;
@@ -531,6 +534,11 @@ const GroupDetailPage = () => {
           GroupSettings={GroupSettings}
         />
 
+        <GroupPredictionBanner
+          eventStarted={eventStarted}
+          predictionsOpen={predictionsOpen}
+        />
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
           {/* Colonne de gauche - Info du groupe */}
           <div className="lg:col-span-1">
@@ -631,6 +639,7 @@ const GroupDetailPage = () => {
                 prediction={predictions.find(p => p.userId === user.uid)}
                 groupId={groupId}
                 eventStarted={eventStarted}
+                predictionsOpen={predictionsOpen}
               />
             </div>
 

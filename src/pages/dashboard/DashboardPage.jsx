@@ -6,8 +6,10 @@ import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firesto
 import Leaderboard from '../../components/dashboard/Leaderboard';
 import QuizSection from '../../components/dashboard/QuizSection';
 import BadgesSection from '../../components/dashboard/badges/BadgesSection';
+import PredictionStatusBanner from '../../components/dashboard/PredictionStatusBanner';
 
-const PredictionStatus = ({ prediction }) => {
+
+const PredictionStatus = ({ prediction, predictionsOpen }) => {
   const [isSpinning, setIsSpinning] = useState(true);
 
   // Arrêter l'animation après 3 secondes
@@ -18,6 +20,18 @@ const PredictionStatus = ({ prediction }) => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Si les pronostics ne sont pas encore ouverts
+  if (!predictionsOpen) {
+    return (
+      <div className="flex items-center bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 px-4 py-3 rounded-lg">
+        <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        En attente de l'ouverture des pronostics
+      </div>
+    );
+  }
 
   if (!prediction) {
     return (
@@ -394,6 +408,7 @@ const DashboardPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
   const [eventStarted, setEventStarted] = useState(false);
+  const [predictionsOpen, setPredictionsOpen] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -412,8 +427,9 @@ const DashboardPage = () => {
         const eventDoc = await getDoc(doc(db, 'events', 'missfranceEventStatus'));
         if (eventDoc.exists()) {
           setEventStarted(eventDoc.data().started);
+          // Vérifier si les pronostics sont ouverts
+          setPredictionsOpen(eventDoc.data().predictionsOpen !== false);
         }
-
 
         // Récupérer les groupes de l'utilisateur
         const groupsSnap = await getDocs(collection(db, 'groups'));
@@ -521,18 +537,21 @@ const DashboardPage = () => {
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => navigate('/predictions', { state: { from: 'dashboard' } })}
-                disabled={eventStarted}
+                disabled={eventStarted || !predictionsOpen}
                 className={`px-4 py-2 border-2 rounded-lg font-medium transition-colors
-                    ${eventStarted
+      ${eventStarted || !predictionsOpen
                     ? 'border-gray-300 text-gray-400 dark:border-gray-600 dark:text-gray-500 cursor-not-allowed'
                     : 'border-pink-500 dark:border-pink-400 text-pink-500 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-950/30'
                   }`}
               >
                 {prediction ? 'Modifier mes pronostics' : 'Faire mes pronostics'}
               </button>
-              {eventStarted && (
+              {(eventStarted || !predictionsOpen) && (
                 <p className="text-sm text-red-500 dark:text-red-400">
-                  L'élection a commencé, les pronostics sont maintenant fermés
+                  {eventStarted
+                    ? "L'élection a commencé, les pronostics sont maintenant fermés"
+                    : "La saisie des pronostics n'est pas encore ouverte"
+                  }
                 </p>
               )}
             </div>
@@ -551,9 +570,15 @@ const DashboardPage = () => {
           </div>
         </div>
 
+        {/* Nouvelle bannière de statut des pronostics */}
+        <div className="mb-8">
+          <PredictionStatusBanner eventStarted={eventStarted} predictionsOpen={predictionsOpen} />
+        </div>
+
+
         {/* Status des pronostics */}
         <div className="mb-8">
-          <PredictionStatus prediction={prediction} />
+          <PredictionStatus prediction={prediction} predictionsOpen={predictionsOpen} />
         </div>
 
         {/* Résumé des pronostics si existants */}

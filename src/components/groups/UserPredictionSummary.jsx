@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 
-const UserPredictionSummary = ({ prediction, groupId, eventStarted }) => {
+const UserPredictionSummary = ({ prediction, groupId, eventStarted, predictionsOpen = true }) => {
   const [eventResults, setEventResults] = useState(null);
 
   useEffect(() => {
@@ -31,23 +31,37 @@ const UserPredictionSummary = ({ prediction, groupId, eventStarted }) => {
             Pas encore de pronostics ?
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Faites vos pronostics pour le concours Miss France et comparez vos résultats avec les autres membres du groupe !
+            {!predictionsOpen
+              ? "La saisie des pronostics n'est pas encore ouverte. Revenez bientôt !"
+              : "Faites vos pronostics pour le concours Miss France et comparez vos résultats avec les autres membres du groupe !"}
           </p>
           <Link
             to="/predictions"
-            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium rounded-lg transition-colors"
+            className={`inline-flex items-center px-4 py-2 font-medium rounded-lg transition-colors ${!eventStarted && predictionsOpen
+                ? "bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+                : "bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed"
+              }`}
+            onClick={(e) => {
+              if (eventStarted || !predictionsOpen) {
+                e.preventDefault();
+              }
+            }}
           >
-            Commencer mes pronostics
-            <svg 
-              className="ml-2 w-4 h-4" 
-              fill="none" 
-              stroke="currentColor" 
+            {eventStarted
+              ? "Pronostics fermés"
+              : !predictionsOpen
+                ? "Pronostics bientôt disponibles"
+                : "Commencer mes pronostics"}
+            <svg
+              className="ml-2 w-4 h-4"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="2" 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
                 d="M14 5l7 7m0 0l-7 7m7-7H3"
               />
             </svg>
@@ -57,9 +71,9 @@ const UserPredictionSummary = ({ prediction, groupId, eventStarted }) => {
     );
   }
 
-  const total = (prediction.top3?.length || 0) + 
-                (prediction.top5?.length || 0) + 
-                (prediction.qualified?.length || 0);
+  const total = (prediction.top3?.length || 0) +
+    (prediction.top5?.length || 0) +
+    (prediction.qualified?.length || 0);
 
   const isComplete = total === 15;
 
@@ -79,7 +93,7 @@ const UserPredictionSummary = ({ prediction, groupId, eventStarted }) => {
           {!eventStarted && (
             <div className="flex items-center gap-2 text-sm">
               <div className="flex h-2 w-24 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="bg-gradient-to-r from-pink-500 to-purple-500 transition-all"
                   style={{ width: `${(total / 15) * 100}%` }}
                 />
@@ -94,8 +108,8 @@ const UserPredictionSummary = ({ prediction, groupId, eventStarted }) => {
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
               Complété ✓
             </span>
-          ) : !eventStarted ? (
-            <Link 
+          ) : !eventStarted && predictionsOpen ? (
+            <Link
               to="/predictions"
               className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white text-sm font-medium rounded-lg transition-colors"
             >
@@ -104,6 +118,10 @@ const UserPredictionSummary = ({ prediction, groupId, eventStarted }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
               </svg>
             </Link>
+          ) : !eventStarted && !predictionsOpen ? (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400">
+              En attente d'ouverture
+            </span>
           ) : null}
         </div>
       </div>
@@ -116,7 +134,7 @@ const UserPredictionSummary = ({ prediction, groupId, eventStarted }) => {
               {prediction.isPublic ? 'Public' : 'Privé'}
             </span>
           </div>
-          <Link 
+          <Link
             to={`/predictions`}
             className="text-sm text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-medium"
           >
